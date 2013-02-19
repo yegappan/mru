@@ -832,6 +832,20 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
   call s:MRU_Open_Window(a:pat, a:splitdir, a:winsz)
 endfunc
 
+" MRU_Toggle                          {{{1
+" Toggle MRU
+"   pat - File name pattern passed to the MRU command
+function! s:MRU_Toggle(pat)
+    " If the MRU window is open, close it
+    let winnum = bufwinnr(s:MRU_buf_name)
+    if winnum != -1
+        exe winnum . 'wincmd w'
+        silent! close
+    else
+        call s:MRU_Cmd(a:pat, '', '')
+    endif
+endfunction
+
 " MRU_add_files_to_menu                 {{{1
 " Adds a list of files to the "Recent Files" sub menu under the "File" menu.
 "   prefix - Prefix to use for each of the menu entries
@@ -998,6 +1012,8 @@ else
 	\ call s:MRU_Cmd(<q-args>, '', <count>)
 endif
 command! -nargs=0 MruRefresh call s:MRU_Refresh()
+command! -nargs=? -complete=customlist,s:MRU_Complete MRUToggle
+            \ call s:MRU_Toggle(<q-args>)
 
 " FZF (fuzzy finder) integration    {{{1
 func s:MRU_FZF_EditFile(fname) abort
