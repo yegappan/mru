@@ -1,51 +1,45 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.6
-" Last Modified: July 19, 2003
+" Version: 2.0
+" Last Modified: March 26, 2005
 "
 " Overview
 " --------
 " The Most Recently Used (MRU) plugin provides an easy access to a list of
-" recently opened/used files in Vim. This plugin automatically stores the file
-" names as you open/use them in Vim.
+" recently opened/edited files in Vim. This plugin automatically stores the
+" file names as you open/edit them in Vim.
 "
 " This plugin will work on all the platforms where Vim is supported. This
 " plugin will work in both console and GUI Vim. This plugin will work only if
-" the 'compatible' option is not set. As this plugin relies on the 'viminfo'
-" feature, make sure Vim is built with this feature (+viminfo) enabled (use
-" the ":version" command)
+" the 'compatible' option is not set. 
 "
-" The MRU filenames are stored in a global variable which retains the stored
-" value across Vim sessions using the 'viminfo' feature. For this to work, the
-" 'viminfo' option should have the '!' flag set. This plugin will
-" automatically add this flag to the 'viminfo' option.
-"
-" When you are using multiple instances of Vim at the same time, as you quit
-" every instance of Vim, the MRU list from that instance will override the
-" list from other instances of Vim. This is similar to how Vim handles the
-" buffer list across Vim sessions.
+" The recently used filenames are stored in a file specified by the Vim
+" MRU_File variable.
 "
 " Installation
 " ------------
-" 1. Copy the mru.vim script to the $HOME/.vim/plugin directory.  Refer to
-"    ':help add-plugin', ':help add-global-plugin' and ':help runtimepath' for
-"    more details about Vim plugins.
-" 2. Restart Vim.
-" 3. You can use the ":MRU" command to list and edit the recently used files.
+" 1. Copy the mru.vim script to the $HOME/.vim/plugin or the
+"    $HOME/vimfiles/plugin or the $VIM/vimfiles directory.  Refer to the
+"    ':help add-plugin', ':help add-global-plugin' and ':help runtimepath'
+"    topics for more details about Vim plugins.
+" 2. Set the MRU_File Vim variable in the .vimrc file to the location of a
+"    file to store the most recently edit file names.
+" 3. Restart Vim.
+" 4. You can use the ":MRU" command to list and edit the recently used files.
 "
 " Usage
 " -----
-" You can use the ":MRU" command to list all the most recently used file
+" You can use the ":MRU" command to list all the most recently edited file
 " names. The file names will be listed in a temporary Vim window. If the MRU
 " list window is already opened, then the MRU list displayed in the window
 " will be refreshed.
 "
-" You can use the normal Vim commands to move around the window. You cannot
-" make changes in the window.
+" You can use the normal Vim commands to move around the MRU window. You
+" cannot make changes in the MRU window.
 "
 " You can select a file name to edit by pressing the <Enter> key or by double
 " clicking the left mouse button on a file name.  The selected file will be
-" opened. 
+" opened.
 "
 " You can press the 'o' key to open the file name under the cursor in the
 " MRU window in a new window.
@@ -56,18 +50,29 @@
 " You can close the MRU window by pressing the 'q' key or using one of the Vim
 " window commands.
 "
+" If you are using GUI Vim, then the names of the recently edited files are
+" added to the "File->Recent Files" menu. You can select the name of a file
+" from this sub-menu to edit the file.
+"
 " Configuration
 " -------------
 " By changing the following variables you can configure the behavior of this
 " plugin. Set the following variables in your .vimrc file using the 'let'
 " command.
 "
+" The list of recently edit file names is stored in the file specified by the
+" MRU_File variable.  The default setting for this variable is
+" $HOME/.vim_mru_list. You can change this variable to point to a file by
+" adding the following line to the .vimrc file:
+"
+"       let MRU_File = 'd:\myhome\_vim_mru_list'
+"
 " By default, the plugin will remember the names of the last 10 used files.
 " As you edit more files, old file names will be removed from the MRU list.
 " You can set the 'MRU_Max_Entries' variable to remember more file names. For
-" example, to remember 50 most recently used file names, you can use
+" example, to remember 20 most recently used file names, you can use
 "
-"       let MRU_Max_Entries = 50
+"       let MRU_Max_Entries = 20
 "
 " By default, all the edited file names will be added to the MRU list. If you
 " want to exclude file names matching a list of patterns, you can set the
@@ -132,29 +137,117 @@ if !exists('MRU_Auto_Close')
     let MRU_Auto_Close = 1
 endif
 
-" The MRU plugin relies on the 'viminfo' feature to store and restore the MRU
-" list.
-" If the 'viminfo' option is not set then set it to the Vim default value
-if &viminfo == ''
-    set viminfo&vim
+if !exists('MRU_File')
+    if has('unix')
+        let MRU_File = $HOME . "/.vim_mru_list"
+    else
+        let MRU_File = $VIM . "/_vim_mru_list"
+    endif
 endif
 
-" Add (prepend) the ! flag to remember global variables names across Vim
-" sessions
-set viminfo^=!
-
-if !exists('MRU_LIST')
-    let MRU_LIST = ''
+" Read the saved MRU list
+if filereadable(MRU_File)
+    exe "source " . MRU_File
 endif
+
+if exists('g:MRU_list')
+    " Replace %MRU% with newlines
+    let g:MRU_list = substitute(g:MRU_list, "%MRU%", "\n", "g")
+    let s:MRU_list = g:MRU_list
+    unlet! g:MRU_list
+else
+    let s:MRU_list = ''
+endif
+
+" New files opened in this Vim session
+let s:MRU_new_list = ''
+
+" MRU_RemoveLines()
+" Remove the lines matching 'one_line' from 'str'
+function! s:MRU_RemoveLines(str, one_line)
+    let idx = stridx(a:str, a:one_line . "\n")
+    if idx == -1
+        " one_line is not present in str
+        return a:str
+    endif
+
+    let x = a:str
+
+    while idx != -1
+        " Remove the entry from the list by extracting the text before it
+        " and then the text after it and then concatenate them
+        let text_before = strpart(x, 0, idx)
+        let rem_text = strpart(x, idx)
+        let next_idx = stridx(rem_text, "\n")
+        let text_after = strpart(rem_text, next_idx + 1)
+
+        let x = text_before . text_after
+        let idx = stridx(x, a:one_line . "\n")
+    endwhile
+
+    return x
+endfunction
+
+" MRU_TrimLines()
+" Returns the first "lcnt" lines from "lines"
+function! s:MRU_TrimLines(lines, lcnt)
+    " Retain only  lcnt lines in lines. Remove the remaining lines
+    let llist = a:lines
+    let cnt = a:lcnt
+    let new_llist = ''
+    while cnt > 0 && llist != ''
+        " Extract one filename from the list
+        let one_line = strpart(llist, 0, stridx(llist, "\n"))
+
+        " Remove the extracted line from the list
+        let llist = strpart(llist, stridx(llist, "\n") + 1)
+
+        " Retain the line
+        let new_llist = new_llist . one_line . "\n"
+
+        " One more entry used up
+        let cnt = cnt - 1
+    endwhile
+
+    return new_llist
+endfunction
+
+" MRU_AddNewFiles()
+" Adds new files from new_files to file_list at the beginning. If a file
+" already exists in file_list, then it is moved to the beginning.
+" Also trim the list, so that it contains only file_list entries
+function! s:MRU_AddNewFiles(file_list, new_files, file_count)
+    let new_flist = a:new_files
+    let old_flist = a:file_list
+
+    " Remove files in new_files that are also present in the old file_list
+    while new_flist != ''
+        " Extract one filename from the list
+        let one_line = strpart(new_flist, 0, stridx(new_flist, "\n"))
+
+        " Remove the extracted line from the list
+        let new_flist = strpart(new_flist, stridx(new_flist, "\n") + 1)
+
+        " Remove the file from the old list
+        let old_flist = s:MRU_RemoveLines(old_flist, one_line)
+    endwhile
+
+    " Add the new file list to the beginning of the updated old file list
+    let x = a:new_files . old_flist
+
+    " Return the trimmed list
+    return s:MRU_TrimLines(x, a:file_count)
+endfunction
 
 " MRU_AddFile
 " Add a file to the MRU file list
-function! s:MRU_AddFile()
-    " Get the full path to the filename
-    let fname = fnamemodify(expand('<afile>'), ':p')
-    if fname == ''
+function! s:MRU_AddFile(filename)
+    if a:filename == ''
         return
     endif
+
+    " Get the full path to the filename
+    let fname = fnamemodify(a:filename, ':p')
 
     " Skip temporary buffer with buftype set
     if &buftype != ''
@@ -169,62 +262,70 @@ function! s:MRU_AddFile()
         endif
     endif
 
-    let already_present = 0
-
     " If the filename is already present in the MRU list, then move
     " it to the beginning of the list
-    let idx = stridx(g:MRU_LIST, fname . "\n")
-    if idx != -1
-        let already_present = 1
-
-        " Remove the entry from the list by extracting the text before it
-        " and then the text after it and then concatenate them
-        let text_before = strpart(g:MRU_LIST, 0, idx)
-        let rem_text = strpart(g:MRU_LIST, idx)
-        let next_idx = stridx(rem_text, "\n")
-        let text_after = strpart(rem_text, next_idx + 1)
-        let g:MRU_LIST = text_before . text_after
-    endif
-
-    " If the file is not present in the system and was not already present in
-    " the MRU list, then skip it
-    if !already_present && !filereadable(fname)
+    let idx = stridx(s:MRU_list, fname . "\n")
+    if idx == -1 && !filereadable(fname)
+        " File is not readable and is not in the MRU list
         return
     endif
 
-    " Allow (retain) only MRU_Max_Entries in the MRU list. Remove/discard
-    " the remaining entries. As we are adding a one entry to the list,
-    " the list should have only MRU_Max_Entries - 1 in it.
-    let cnt = g:MRU_Max_Entries - 1
-    let mru_list = g:MRU_LIST
-    let g:MRU_LIST = ''
-    while cnt > 0 && mru_list != ''
-        " Extract one filename from the list
-        let one_line = strpart(mru_list, 0, stridx(mru_list, "\n"))
+    " Add the new filename to the MRU list
+    let s:MRU_list = s:MRU_AddNewFiles(s:MRU_list, fname . "\n",
+                \ g:MRU_Max_Entries)
 
-        " Remove the extracted line from the list
-        let mru_list = strpart(mru_list, stridx(mru_list, "\n") + 1)
+    " Add the new filename to the list of files edited in this Vim session
+    let s:MRU_new_list = s:MRU_AddNewFiles(s:MRU_new_list, fname . "\n",
+                \ g:MRU_Max_Entries)
 
-        " Add it to the global MRU list
-        let g:MRU_LIST = g:MRU_LIST . one_line . "\n"
-
-        " One more entry used up
-        let cnt = cnt - 1
-    endwhile
-
-    " Add the new filename to the beginning of the MRU list
-    let g:MRU_LIST = fname . "\n" . g:MRU_LIST
+    " Refresh the MRU menu
+    call s:MRU_Refresh_Menu()
 
     " If the MRU window is open, update the displayed MRU list
     let bname = '__MRU_Files__'
     let winnum = bufwinnr(bname)
     if winnum != -1
         let cur_winnr = winnr()
-        call s:MRU_Display()
+        call s:MRU_Open_Window()
         if winnr() != cur_winnr
             exe cur_winnr . 'wincmd w'
         endif
     endif
+endfunction
+
+" MRU_SaveList
+" Save the MRU list to the file
+function! s:MRU_SaveList()
+    let mru_list = s:MRU_new_list
+
+    if mru_list == ''
+        " Nothing new to save
+        return
+    endif
+
+    " Read the list from the MRU file.
+    if filereadable(g:MRU_File)
+        exe "source " . g:MRU_File
+    endif
+
+    if exists('g:MRU_list')
+        " Replace %MRU% with newline
+        let g:MRU_list = substitute(g:MRU_list, "%MRU%", "\n", "g")
+
+        " Merge the files edit in this session with the global list
+        let mru_list = s:MRU_AddNewFiles(g:MRU_list, mru_list,
+                    \   g:MRU_Max_Entries)
+
+        unlet! g:MRU_list
+    endif
+
+    " Replace all newlines with %MRU%
+    let mru_list = substitute(mru_list, "\n", "%MRU%", "g")
+
+    " Save the MRU list
+    exe "redir! > " . g:MRU_File
+    silent! echon "let MRU_list= '" . mru_list . "'\n"
+    redir END
 endfunction
 
 " MRU_EditFile
@@ -237,6 +338,9 @@ function! s:MRU_EditFile(new_window)
     endif
 
     if a:new_window
+        if g:MRU_Auto_Close == 1 && g:MRU_Use_Current_Window == 0
+            silent! close
+        endif
         exe 'leftabove new ' . fname
     else
         " If the selected file is already open in one of the windows,
@@ -278,9 +382,9 @@ function! s:MRU_EditFile(new_window)
             endif
 
             " Edit the file
-            let bno = bufnr(fname)
-            if bno != -1
-                exe 'buffer ' . bno
+            let bnum = bufnr(fname)
+            if bnum != -1
+                exe 'buffer ' . bnum
             else
                 exe 'edit ' . fname
             endif
@@ -288,11 +392,11 @@ function! s:MRU_EditFile(new_window)
     endif
 endfunction
 
-" MRU_Display
+" MRU_Open_Window
 " Display the Most Recently Used file list in a temporary window.
-function! s:MRU_Display()
+function! s:MRU_Open_Window()
     " Empty MRU list
-    if g:MRU_LIST == ''
+    if s:MRU_list == ''
         echohl WarningMsg | echo 'MRU List is empty' | echohl None
         return
     endif
@@ -361,16 +465,67 @@ function! s:MRU_Display()
     nnoremap <buffer> <silent> q :close<CR>
 
     " Display the MRU list
-    silent! 0put =g:MRU_LIST
+    silent! 0put =s:MRU_list
 
     setlocal nomodifiable
 endfunction
 
+" MRU_Refresh_Menu()
+" Refresh the MRU menu
+function! s:MRU_Refresh_Menu()
+    if !has('gui_running') || &guioptions !~ 'm'
+        " Not running in GUI mode
+        return
+    endif
+
+    " set 'cpo' to include the <CR>
+    let cpo_save = &cpo
+    set cpo&vim
+
+    " Remove the existing MRU menu
+    silent! aunmenu &File.Recent\ Files
+
+    " Add the filenames in the MRU list to the menu
+    let flist = s:MRU_list
+    while flist != ''
+        " Extract one filename from the list
+        let fname = strpart(flist, 0, stridx(flist, "\n"))
+
+        " Escape special characters in the filename
+        let esc_fname = escape(fnamemodify(fname, ':t'), ". \\|\t")
+
+        " Remove the extracted line from the list
+        let flist = strpart(flist, stridx(flist, "\n") + 1)
+
+        " Truncate the directory name if it is long
+        let dir_name = fnamemodify(fname, ':h')
+        let len = strlen(dir_name)
+        " Shorten long file names by adding only few characters from
+        " the beginning and end.
+        if len > 30
+            let dir_name = strpart(dir_name, 0, 10) .
+                        \ '...' . 
+                        \ strpart(dir_name, len - 20)
+        endif
+        let esc_dir_name = escape(dir_name, ". \\|\t")
+
+        exe 'amenu <silent> &File.Recent\ Files.' . esc_fname .
+                    \ '\ (' . esc_dir_name . ')' .
+                    \ ' :confirm edit ' . fname . '<CR>'
+    endwhile
+
+    let &cpo = cpo_save
+endfunction
+
+" Refresh the MRU menu at the startup
+call  s:MRU_Refresh_Menu()
+
 " Autocommands to detect the most recently used files
-autocmd BufRead * call s:MRU_AddFile()
-autocmd BufNewFile * call s:MRU_AddFile()
-autocmd BufWritePost * call s:MRU_AddFile()
+autocmd BufRead * call s:MRU_AddFile(expand('<afile>'))
+autocmd BufNewFile * call s:MRU_AddFile(expand('<afile>'))
+autocmd BufWritePost * call s:MRU_AddFile(expand('<afile>'))
+autocmd VimLeavePre * call s:MRU_SaveList()
 
 " Command to open the MRU window
-command! -nargs=0 MRU call s:MRU_Display()
+command! -nargs=0 MRU call s:MRU_Open_Window()
 
