@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.5
-" Last Modified: May 19, 2003
+" Version: 1.6
+" Last Modified: July 19, 2003
 "
 " Overview
 " --------
@@ -173,7 +173,7 @@ function! s:MRU_AddFile()
 
     " If the filename is already present in the MRU list, then move
     " it to the beginning of the list
-    let idx = stridx(g:MRU_LIST, fname)
+    let idx = stridx(g:MRU_LIST, fname . "\n")
     if idx != -1
         let already_present = 1
 
@@ -243,7 +243,18 @@ function! s:MRU_EditFile(new_window)
         " jump to it
         let winnum = bufwinnr(fname)
         if winnum != -1
-            exe winnum . 'wincmd w'
+            if g:MRU_Auto_Close == 1 && g:MRU_Use_Current_Window == 0
+                " Automatically close the window if the file window is
+                " not used to display the MRU list.
+                silent! close
+            endif
+            " As the window numbers will change after closing a window,
+            " get the window number again and jump to it, if the cursor
+            " is not already in that window
+            let winnum = bufwinnr(fname)
+            if winnum != winnr()
+                exe winnum . 'wincmd w'
+            endif
         else
             if g:MRU_Auto_Close == 1 && g:MRU_Use_Current_Window == 0
                 " Automatically close the window if the file window is
