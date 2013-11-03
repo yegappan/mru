@@ -1,8 +1,8 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.4
-" Last Modified: April 13, 2012
-" Copyright: Copyright (C) 2003-2012 Yegappan Lakshmanan
+" Version: 3.5
+" Last Modified: May 8, 2013
+" Copyright: Copyright (C) 2003-2013 Yegappan Lakshmanan
 "            Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
@@ -919,7 +919,7 @@ function! s:MRU_Refresh_Menu()
     let entry_cnt = len(s:MRU_files)
     if entry_cnt > g:MRU_Max_Menu_Entries
         " Show only MRU_Max_Menu_Entries file names in the menu
-        let mru_list = s:MRU_files[1 : g:MRU_Max_Menu_Entries]
+        let mru_list = s:MRU_files[0 : g:MRU_Max_Menu_Entries - 1]
         let entry_cnt = g:MRU_Max_Menu_Entries
     else
         let mru_list = s:MRU_files
