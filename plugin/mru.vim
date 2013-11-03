@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 2.2
-" Last Modified: May 30, 2006
+" Version: 2.3
+" Last Modified: June 3, 2006
 "
 " Overview
 " --------
@@ -184,6 +184,8 @@ endfunction
 function! s:MRU_SaveList()
     " Replace all newlines with file separator (|)
     let mru_list = substitute(s:MRU_files, "\n", "|", "g")
+    " Escape single quote in filenames with double single quotes
+    let mru_list = substitute(mru_list, "'", "''", "g")
 
     " set the verbose option to zero (default). Otherwise this will
     " mess up the text emitted below.
@@ -321,7 +323,7 @@ endfunction
 function! s:MRU_Edit_File(filename)
     let fname = escape(a:filename, ' ')
     " If the file is already open in one of the windows, jump to it
-    let winnum = bufwinnr(fname)
+    let winnum = bufwinnr('^' . fname . '$')
     if winnum != -1
         if winnum != winnr()
             exe winnum . 'wincmd w'
@@ -366,7 +368,7 @@ function! s:MRU_Window_Edit_File(new_window)
     else
         " If the selected file is already open in one of the windows,
         " jump to it
-        let winnum = bufwinnr(fname)
+        let winnum = bufwinnr('^' . fname . '$')
         if winnum != -1
             if g:MRU_Auto_Close == 1 && g:MRU_Use_Current_Window == 0
                 " Automatically close the window if the file window is
@@ -376,7 +378,7 @@ function! s:MRU_Window_Edit_File(new_window)
             " As the window numbers will change after closing a window,
             " get the window number again and jump to it, if the cursor
             " is not already in that window
-            let winnum = bufwinnr(fname)
+            let winnum = bufwinnr('^' . fname . '$')
             if winnum != winnr()
                 exe winnum . 'wincmd w'
             endif
