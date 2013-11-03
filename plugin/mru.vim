@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 2.3
-" Last Modified: June 3, 2006
+" Version: 2.4
+" Last Modified: October 30, 2006
 "
 " Overview
 " --------
@@ -22,7 +22,8 @@
 "    ':help add-plugin', ':help add-global-plugin' and ':help runtimepath'
 "    topics for more details about Vim plugins.
 " 2. Set the MRU_File Vim variable in the .vimrc file to the location of a
-"    file to store the most recently edited file names.
+"    file to store the most recently edited file names. This step is needed
+"    only if you want to change the default MRU filename.
 " 3. Restart Vim.
 " 4. You can use the ":MRU" command to list and edit the recently used files.
 "    In GUI Vim, you can use the 'File->Recent Files' menu to access the
@@ -39,12 +40,15 @@
 " added to the "File->Recent Files" menu. You can select the name of a file
 " from this sub-menu to edit the file.
 "
-" You can use the normal Vim commands to move around the MRU window. You
+" You can use the normal Vim commands to move around in the MRU window. You
 " cannot make changes in the MRU window.
 "
 " You can select a file name to edit by pressing the <Enter> key or by double
 " clicking the left mouse button on a file name.  The selected file will be
-" opened.
+" opened. If the file is already opened in a window, the cursor will be moved
+" to that window. Otherwise, the file is opened in the previous window. If the
+" previous window has a modified buffer or is the preview window or is used by
+" some other plugin, then the file is opened in a new window.
 "
 " You can press the 'o' key to open the file name under the cursor in the
 " MRU window in a new window.
@@ -321,7 +325,7 @@ endfunction
 " MRU_Edit_File
 " Edit the specified file
 function! s:MRU_Edit_File(filename)
-    let fname = escape(a:filename, ' ')
+    let fname = escape(a:filename, ' %#')
     " If the file is already open in one of the windows, jump to it
     let winnum = bufwinnr('^' . fname . '$')
     if winnum != -1
@@ -329,9 +333,9 @@ function! s:MRU_Edit_File(filename)
             exe winnum . 'wincmd w'
         endif
     else
-        if &modified
-            " Current buffer has unsaved changes, so open the file in a
-            " new window
+        if &modified || &buftype != '' || &previewwindow
+            " Current buffer has unsaved changes or is a special buffer or is
+            " the preview window.  So open the file in a new window
             exe 'split ' . fname
         else
             exe 'edit ' . fname
@@ -348,7 +352,7 @@ function! s:MRU_Window_Edit_File(new_window)
         return
     endif
 
-    let fname = escape(fname, ' ')
+    let fname = escape(fname, ' %#')
 
     if a:new_window
         " Edit the file in a new window
@@ -405,7 +409,9 @@ function! s:MRU_Window_Edit_File(new_window)
             endif
 
             " Edit the file
-            if &modified
+            if &modified || &buftype != '' || &previewwindow
+                " Current buffer has unsaved changes or is a special buffer or
+                " is the preview window.  So open the file in a new window
                 exe 'split ' . fname
             else
                 exe 'edit ' . fname
@@ -635,7 +641,7 @@ function! s:MRU_Refresh_Menu()
         endif
 
         " Escape special characters in the filename
-        let esc_fname = escape(fnamemodify(fname, ':t'), ". \\|\t")
+        let esc_fname = escape(fnamemodify(fname, ':t'), ". \\|\t%#")
 
         " Remove the extracted line from the list
         let flist = strpart(flist, stridx(flist, "\n") + 1)
