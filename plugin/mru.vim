@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 2.4
-" Last Modified: October 30, 2006
+" Version: 2.5
+" Last Modified: October 30, 2007
 "
 " Overview
 " --------
@@ -263,13 +263,12 @@ endfunction
 
 " MRU_AddFile
 " Add a file to the MRU file list
-function! s:MRU_AddFile(filename)
-    if a:filename == ''
+function! s:MRU_AddFile(acmd_bufnr)
+    " Get the full path to the filename
+    let fname = fnamemodify(bufname(a:acmd_bufnr + 0), ':p')
+    if fname == ''
         return
     endif
-
-    " Get the full path to the filename
-    let fname = fnamemodify(a:filename, ':p')
 
     " Skip temporary buffer with buftype set
     if &buftype != ''
@@ -539,9 +538,9 @@ function! s:MRU_Edit_File_Cmd(fspec)
     " Load the latest MRU file
     call s:MRU_LoadList()
 
-    " User can specify either a number of a partial file name to
+    " User can specify either a number or a partial file name to
     " edit a file from the MRU list
-    if a:fspec =~ '\d\+'
+    if a:fspec =~ '^\d\+$'
         " A number is specified
         let fnum = a:fspec
         if fnum > g:MRU_Max_Entries
@@ -577,13 +576,17 @@ function! s:MRU_Edit_File_Cmd(fspec)
         let fname = ''
         let fname_cnt = 0
 
+        " Escape backslash in the partial filename, otherwise regexp
+        " comparison will fail
+        let fpat = escape(a:fspec, '\')
+
         while mru_list != ''
             let one_fname = strpart(mru_list, 0, stridx(mru_list, "\n"))
             if one_fname == ''
                 break
             endif
 
-            if one_fname =~? a:fspec
+            if one_fname =~? fpat
                 let fname = one_fname
                 let fname_cnt = fname_cnt + 1
             endif
@@ -674,9 +677,9 @@ endfunction
 call s:MRU_LoadList()
 
 " Autocommands to detect the most recently used files
-autocmd BufRead * call s:MRU_AddFile(expand('<afile>'))
-autocmd BufNewFile * call s:MRU_AddFile(expand('<afile>'))
-autocmd BufWritePost * call s:MRU_AddFile(expand('<afile>'))
+autocmd BufRead * call s:MRU_AddFile(expand('<abuf>'))
+autocmd BufNewFile * call s:MRU_AddFile(expand('<abuf>'))
+autocmd BufWritePost * call s:MRU_AddFile(expand('<abuf>'))
 
 " Command to open the MRU window
 command! -nargs=0 MRU call s:MRU_Open_Window()
