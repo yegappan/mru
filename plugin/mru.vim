@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.5
-" Last Modified: May 8, 2013
+" Version: 3.6
+" Last Modified: December 22, 2013
 " Copyright: Copyright (C) 2003-2013 Yegappan Lakshmanan
 "            Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -24,6 +24,10 @@
 "
 " The recently used filenames are stored in a file specified by the Vim
 " MRU_File variable.
+"
+" The Github repository for the MRU plugin is available at:
+"
+"	http://github.com/yegappan/mru
 "
 " Installation
 " ------------
@@ -515,17 +519,17 @@ endfunction
 function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
     let esc_fname = s:MRU_escape_filename(a:fname)
 
-    if a:open_type == 'newwin_horiz'
+    if a:open_type ==# 'newwin_horiz'
         " Edit the file in a new horizontally split window above the previous
         " window
         wincmd p
         exe 'belowright new ' . esc_fname
-    elseif a:open_type == 'newwin_vert'
+    elseif a:open_type ==# 'newwin_vert'
         " Edit the file in a new vertically split window above the previous
         " window
         wincmd p
         exe 'belowright vnew ' . esc_fname
-    elseif a:open_type == 'newtab' || g:MRU_Open_File_Use_Tabs
+    elseif a:open_type ==# 'newtab' || g:MRU_Open_File_Use_Tabs
 	call s:MRU_Open_File_In_Tab(a:fname, esc_fname)
     else
         " If the selected file is already open in one of the windows,
@@ -572,13 +576,13 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
             if split_window
                 " Current buffer has unsaved changes or is a special buffer or
                 " is the preview window.  So open the file in a new window
-                if a:edit_type == 'edit'
+                if a:edit_type ==# 'edit'
                     exe 'split ' . esc_fname
                 else
                     exe 'sview ' . esc_fname
                 endif
             else
-                if a:edit_type == 'edit'
+                if a:edit_type ==# 'edit'
                     exe 'edit ' . esc_fname
                 else
                     exe 'view ' . esc_fname
@@ -713,6 +717,9 @@ function! s:MRU_Open_Window(...)
     setlocal noswapfile
     setlocal nowrap
     setlocal nobuflisted
+    " Set the 'filetype' to 'mru'. This allows the user to apply custom
+    " syntax highlighting or other changes to the MRU bufer.
+    setlocal filetype=mru
     " Use fixed height for the MRU window
     setlocal winfixheight
 
@@ -767,7 +774,7 @@ function! s:MRU_Open_Window(...)
     silent! 0put =output
 
     " Delete the empty line at the end of the buffer
-    $delete
+    silent! $delete _
 
     " Move the cursor to the beginning of the file
     normal! gg
