@@ -1,9 +1,9 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.6
+" Version: 3.7
 " Last Modified: December 22, 2013
 " Copyright: Copyright (C) 2003-2013 Yegappan Lakshmanan
-"            Permission is hereby granted to use and distribute this code,
+" License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
 "            mru.vim is provided *as is* and comes with no warranty of any
@@ -423,7 +423,11 @@ endfunction
 " that should be escaped (for security reasons)
 let s:esc_filename_chars = ' *?[{`$%#"|!<>();&' . "'\t\n"
 function! s:MRU_escape_filename(fname)
-    return escape(a:fname, s:esc_filename_chars)
+    if exists("*fnameescape")
+        return fnameescape(a:fname)
+    else
+        return escape(a:fname, s:esc_filename_chars)
+    endif
 endfunction
 
 " MRU_Edit_File                         {{{1
