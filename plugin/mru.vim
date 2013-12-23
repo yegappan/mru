@@ -520,6 +520,7 @@ endfunction
 "               newwin_vert - Open the file in a new vertical window.
 "               newtab  - Open the file in a new tab. If the file is already
 "                         opened in a tab, then jump to that tab.
+"               preview - Open the file in the preview window.
 function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
     let esc_fname = s:MRU_escape_filename(a:fname)
 
@@ -535,6 +536,9 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
         exe 'belowright vnew ' . esc_fname
     elseif a:open_type ==# 'newtab' || g:MRU_Open_File_Use_Tabs
 	call s:MRU_Open_File_In_Tab(a:fname, esc_fname)
+    elseif a:open_type ==# 'preview'
+        " Edit the file in the preview window
+        exe 'topleft pedit ' . esc_fname
     else
         " If the selected file is already open in one of the windows,
         " jump to it
@@ -750,6 +754,8 @@ function! s:MRU_Open_Window(...)
                 \ :call <SID>MRU_Select_File_Cmd('edit,newtab')<CR>
     nnoremap <buffer> <silent> v
                 \ :call <SID>MRU_Select_File_Cmd('view,useopen')<CR>
+    nnoremap <buffer> <silent> p
+                \ :call <SID>MRU_Select_File_Cmd('open,preview')<CR>
     nnoremap <buffer> <silent> u :MRU<CR>
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
