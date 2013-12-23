@@ -756,6 +756,12 @@ function! s:MRU_Open_Window(...)
                 \ :call <SID>MRU_Select_File_Cmd('view,useopen')<CR>
     nnoremap <buffer> <silent> p
                 \ :call <SID>MRU_Select_File_Cmd('open,preview')<CR>
+    vnoremap <buffer> <silent> p
+                \ :<C-u>if line("'<") == line("'>")<Bar>
+		\   call <SID>MRU_Select_File_Cmd('open,preview')<Bar>
+		\ else<Bar>
+		\   echoerr "Only a single file can be previewed"<Bar>
+		\ endif<CR>
     nnoremap <buffer> <silent> u :MRU<CR>
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
