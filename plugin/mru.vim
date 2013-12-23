@@ -300,6 +300,14 @@ if !exists('MRU_Open_File_Use_Tabs')
     let MRU_Open_File_Use_Tabs = 0
 endif
 
+" Format of the files in the MRU list
+if ! exists('g:MRU_Format')
+    let g:MRU_Format = {
+    \   'formatter': 'fnamemodify(v:val, ":t") . " (" . v:val . ")"',
+    \   'parser': '(\zs.*\ze)'
+    \}
+endif
+
 " Control to temporarily lock the MRU list. Used to prevent files from
 " getting added to the MRU list when the ':vimgrep' command is executed.
 let s:mru_list_locked = 0
@@ -627,7 +635,7 @@ function! s:MRU_Select_File_Cmd(opt) range
         endif
 
         " The text in the MRU window contains the filename in parenthesis
-        let file = matchstr(f, '(\zs.*\ze)')
+        let file = matchstr(f, g:MRU_Format.parser)
 
         call s:MRU_Window_Edit_File(file, multi, edit_type, open_type)
 
@@ -774,7 +782,7 @@ function! s:MRU_Open_Window(...)
 
     " Get the tail part of the file name (without the directory) and display
     " it along with the full path
-    let  output = map(m, 'fnamemodify(v:val, ":t") . " (" . v:val . ")"')
+    let  output = map(m, g:MRU_Format.formatter)
     silent! 0put =output
 
     " Delete the empty line at the end of the buffer
