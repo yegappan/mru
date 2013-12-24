@@ -8,7 +8,7 @@
 "            notice is copied with it. Like anything else that's free,
 "            mru.vim is provided *as is* and comes with no warranty of any
 "            kind, either expressed or implied. In no event will the copyright
-"            holder be liable for any damamges resulting from the use of this
+"            holder be liable for any damages resulting from the use of this
 "            software.
 "
 " Overview
@@ -79,7 +79,8 @@
 " some other plugin, then the file is opened in a new window.
 "
 " You can press the 'o' key to open the file name under the cursor in the
-" MRU window in a new window.
+" MRU window in a new window. You can also press <Shift-Enter> instead of 'o'
+" to open the file in a new window.
 "
 " To open a file from the MRU window in read-only mode (view), press the 'v'
 " key.
@@ -89,15 +90,16 @@
 " the cursor is moved to that tab. Otherwise, a new tab is opened.
 "
 " You can open multiple files from the MRU window by specifying a count before
-" pressing '<Enter>' or 'v' or 'o' or 't'. You can also visually select
-" multiple filenames and invoke the commands to open the files. Each selected
-" file will be opened in a separate window or tab.
+" pressing '<Enter>' or 'v' or 'o' or 't'. You can also visually (using
+" linewise visual mode) select multiple filenames and invoke the commands to
+" open the files. Each selected file will be opened in a separate window or
+" tab.
 "
 " You can press the 'u' key in the MRU window to update the file list. This is
 " useful if you keep the MRU window open always.
 "
-" You can close the MRU window by pressing the 'q' key or using one of the Vim
-" window commands.
+" You can close the MRU window by pressing the 'q' key or the <Esc> key or
+" using one of the Vim window commands.
 "
 " To display only files matching a pattern from the MRU list in the MRU
 " window, you can specify a pattern to the ":MRU" command. For example, to
@@ -766,6 +768,10 @@ function! s:MRU_Open_Window(...)
                 \ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
     vnoremap <buffer> <silent> o
                 \ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
+    nnoremap <buffer> <silent> <S-CR>
+                \ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
+    vnoremap <buffer> <silent> <S-CR>
+                \ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
     nnoremap <buffer> <silent> O
                 \ :call <SID>MRU_Select_File_Cmd('edit,newwin_vert')<CR>
     vnoremap <buffer> <silent> O
@@ -788,6 +794,7 @@ function! s:MRU_Open_Window(...)
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
     nnoremap <buffer> <silent> q :close<CR>
+    nnoremap <buffer> <silent> <Esc> :close<CR>
 
     " Restore the previous cpoptions settings
     let &cpoptions = old_cpoptions
