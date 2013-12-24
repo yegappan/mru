@@ -207,6 +207,16 @@
 "
 "       let MRU_Max_Submenu_Entries = 15
 "
+" In the MRU window, the filenames are displayed in two parts. The first part
+" contains the file name without the path and the second part contains the
+" full path to the file in parenthesis. This format is controlled by the
+" MRU_Filename_Format variable. If you prefer to change this to some other
+" format, then you can modify the MRU_Filename_Format variable. For example,
+" to display the full path without splitting it, you can set this variable
+" as shown below:
+"
+"       let MRU_Filename_Format={'formatter':'v:val', 'parser':'.*'}
+"
 " ****************** Do not modify after this line ************************
 if exists('loaded_mru')
     finish
@@ -298,6 +308,19 @@ endif
 " cursor will be moved to that tab.
 if !exists('MRU_Open_File_Use_Tabs')
     let MRU_Open_File_Use_Tabs = 0
+endif
+
+" Format of the file names displayed in the MRU window.
+" The default is to display the filename followed by the complete path to the
+" file in parenthesis. This variable controls the expressions used to format
+" and parse the path. This can be changed to display the filenames in a
+" different format. The 'formatter' specifies how to split/format the filename
+" and 'parser' specifies how to read the filename back.
+if !exists('MRU_Filename_Format')
+    let MRU_Filename_Format = {
+        \   'formatter': 'fnamemodify(v:val, ":t") . " (" . v:val . ")"',
+        \   'parser': '(\zs.*\ze)'
+        \}
 endif
 
 " Control to temporarily lock the MRU list. Used to prevent files from
@@ -630,7 +653,7 @@ function! s:MRU_Select_File_Cmd(opt) range
         endif
 
         " The text in the MRU window contains the filename in parenthesis
-        let file = matchstr(f, '(\zs.*\ze)')
+        let file = matchstr(f, g:MRU_Filename_Format.parser)
 
         call s:MRU_Window_Edit_File(file, multi, edit_type, open_type)
 
@@ -784,8 +807,8 @@ function! s:MRU_Open_Window(...)
     endif
 
     " Get the tail part of the file name (without the directory) and display
-    " it along with the full path
-    let  output = map(m, 'fnamemodify(v:val, ":t") . " (" . v:val . ")"')
+    " it along with the full path in parenthesis.
+    let  output = map(m, g:MRU_Filename_Format.formatter)
     silent! 0put =output
 
     " Delete the empty line at the end of the buffer
