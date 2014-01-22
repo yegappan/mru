@@ -1,8 +1,8 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.8
-" Last Modified: December 24, 2013
-" Copyright: Copyright (C) 2003-2013 Yegappan Lakshmanan
+" Last Modified: January 22, 2014
+" Copyright: Copyright (C) 2003-2014 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
@@ -704,8 +704,6 @@ function! s:MRU_Open_Window(...)
             exe winnum . 'wincmd w'
         endif
 
-        setlocal modifiable
-
         " Delete the contents of the buffer to the black-hole register
         silent! %delete _
     else
@@ -742,6 +740,8 @@ function! s:MRU_Open_Window(...)
             exe 'silent! botright ' . g:MRU_Window_Height . 'split ' . wcmd
         endif
     endif
+
+    setlocal modifiable
 
     " Mark the buffer as scratch
     setlocal buftype=nofile
