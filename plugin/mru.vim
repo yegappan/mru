@@ -219,6 +219,14 @@
 "
 "       let MRU_Filename_Format={'formatter':'v:val', 'parser':'.*'}
 "
+" If you want to define a custom path / name for the recent file menu, you can
+" do something like:
+"
+"       let MRU_Menu_Path = '&Recent\ Files'
+"
+" The default value here is '&File.&Recent Files'.  See :help creating-menus
+" for format info.
+"
 " ****************** Do not modify after this line ************************
 if exists('loaded_mru')
     finish
@@ -261,6 +269,10 @@ endif
 
 if !exists('MRU_Auto_Close')
     let MRU_Auto_Close = 1
+endif
+
+if !exists('MRU_File')
+    let MRU_Menu_Path = '&File.&Recent\ Files'
 endif
 
 if !exists('MRU_File')
@@ -931,7 +943,7 @@ function! s:MRU_add_files_to_menu(prefix, file_list)
         let esc_dir_name = escape(dir_name, ".\\" . s:esc_filename_chars)
         let esc_dir_name = substitute(esc_dir_name, '&', '&&', 'g')
 
-	let menu_path = '&File.&Recent\ Files.' . a:prefix . esc_fname .
+	let menu_path = g:MRU_Menu_Path . '.' . a:prefix . esc_fname .
 		    \ '\ (' . esc_dir_name . ')'
 	let esc_mfname = s:MRU_escape_filename(fname)
         exe 'anoremenu <silent> ' . menu_path .
@@ -954,18 +966,21 @@ function! s:MRU_Refresh_Menu()
 
     " Remove the MRU menu
     " To retain the teared-off MRU menu, we need to add a dummy entry
-    silent! unmenu &File.&Recent\ Files
+    exe 'silent! unmenu ' . g:MRU_Menu_Path
+
     " The menu priority of the File menu is 10. If the MRU plugin runs
     " first before menu.vim, the File menu order may not be correct.
     " So specify the priority of the File menu here.
-    10noremenu &File.&Recent\ Files.Dummy <Nop>
-    silent! unmenu! &File.&Recent\ Files
+    exe '10noremenu ' . g:MRU_Menu_Path . '.Dummy <Nop>'
+    exe 'silent! unmenu! ' . g:MRU_Menu_Path
 
-    anoremenu <silent> &File.&Recent\ Files.Refresh\ list
-                \ :call <SID>MRU_LoadList()<CR>
-    exe 'tmenu File.&Recent\ Files.Refresh\ list Reload the MRU file list from '
+    exe 'anoremenu <silent> ' . g:MRU_Menu_Path . '.Refresh\ list \ :call <SID>MRU_LoadList()<CR>'
+
+    exe 'tmenu ' . g:MRU_Menu_Path . '.Refresh\ list Reload the MRU file list from '
 		\ . s:MRU_escape_filename(g:MRU_File)
-    anoremenu File.&Recent\ Files.-SEP1-           :
+
+    " add a separator
+    exe 'anoremenu ' . g:MRU_Menu_Path . '.-SEP1-           :'
 
     " Add the filenames in the MRU list to the menu
     let entry_cnt = len(s:MRU_files)
@@ -993,7 +1008,7 @@ function! s:MRU_Refresh_Menu()
     endif
 
     " Remove the dummy menu entry
-    unmenu &File.&Recent\ Files.Dummy
+    exe 'unmenu ' . g:MRU_Menu_Path . '.Dummy'
 
     " Restore the previous cpoptions settings
     let &cpoptions = old_cpoptions
