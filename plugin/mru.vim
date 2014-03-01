@@ -271,7 +271,7 @@ if !exists('MRU_Auto_Close')
     let MRU_Auto_Close = 1
 endif
 
-if !exists('MRU_File')
+if !exists('MRU_Menu_Path')
     let MRU_Menu_Path = '&File.&Recent\ Files'
 endif
 
