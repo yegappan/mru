@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.8
-" Last Modified: January 22, 2014
+" Last Modified: March 5, 2014
 " Copyright: Copyright (C) 2003-2014 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -123,6 +123,16 @@
 " Whenever the MRU list changes, the MRU file is updated with the latest MRU
 " list. When you have multiple instances of Vim running at the same time, the
 " latest MRU list will show up in all the instances of Vim.
+"
+" The MRUFilename syntax group is used to highlight the file names in the MRU
+" window. By default, this syntax group is linked to the Identifier highlight
+" group. You can change the highlight group by adding the following line in
+" your .vimrc:
+"
+"    highlight link MRUFileName LineNr
+"
+" The MRU buffer uses the 'mru file type. You can use this file type to add
+" custom auto commands, syntax highlighting, etc.
 "
 " Configuration
 " -------------
@@ -823,6 +833,10 @@ function! s:MRU_Open_Window(...)
 
     " Move the cursor to the beginning of the file
     normal! gg
+
+    " Add syntax highlighting for the file names
+    syntax match MRUFileName '^.\{-}\ze('
+    highlight default link MRUFileName Identifier
 
     setlocal nomodifiable
 endfunction
