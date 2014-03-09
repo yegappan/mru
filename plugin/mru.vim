@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.8
-" Last Modified: March 5, 2014
+" Version: 3.8.1
+" Last Modified: March 9, 2014
 " Copyright: Copyright (C) 2003-2014 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -32,24 +32,12 @@
 " Installation
 " ------------
 " 1. Copy the mru.vim file to one of the following directories:
-"
 "       $HOME/.vim/plugin     - Unix like systems
 "       $HOME/vimfiles/plugin - MS-Windows
 "       $VIM:vimfiles:plugin  - Macintosh
 "       $VIM/vimfiles/plugin  - All
-"
-"    Refer to the following Vim help topics for more information about Vim
-"    plugins:
-"
-"       :help add-plugin
-"       :help add-global-plugin
-"       :help runtimepath
-"
-" 2. Set the MRU_File Vim variable in the .vimrc file to the location of a
-"    file to store the most recently edited file names. This step is needed
-"    only if you want to change the default MRU filename.
-" 3. Restart Vim.
-" 4. You can use the ":MRU" command to list and edit the recently used files.
+" 2. Restart Vim.
+" 3. You can use the ":MRU" command to list and edit the recently used files.
 "    In GUI Vim, you can use the 'File->Recent Files' menu to access the
 "    recently used files.
 "
