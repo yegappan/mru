@@ -215,7 +215,8 @@
 " to display the full path without splitting it, you can set this variable
 " as shown below:
 "
-"       let MRU_Filename_Format={'formatter':'v:val', 'parser':'.*'}
+"       let MRU_Filename_Format =
+"       \   {'formatter':'v:val', 'parser':'.*', 'syntax': '[^/\\]\+$'}
 "
 " ****************** Do not modify after this line ************************
 if exists('loaded_mru')
@@ -315,11 +316,13 @@ endif
 " file in parenthesis. This variable controls the expressions used to format
 " and parse the path. This can be changed to display the filenames in a
 " different format. The 'formatter' specifies how to split/format the filename
-" and 'parser' specifies how to read the filename back.
+" and 'parser' specifies how to read the filename back; 'syntax' matches the
+" part to be highlighted.
 if !exists('MRU_Filename_Format')
     let MRU_Filename_Format = {
         \   'formatter': 'fnamemodify(v:val, ":t") . " (" . v:val . ")"',
-        \   'parser': '(\zs.*\ze)'
+        \   'parser': '(\zs.*\ze)',
+        \   'syntax': '^.\{-}\ze('
         \}
 endif
 
@@ -823,8 +826,10 @@ function! s:MRU_Open_Window(...)
     normal! gg
 
     " Add syntax highlighting for the file names
-    syntax match MRUFileName '^.\{-}\ze('
-    highlight default link MRUFileName Identifier
+    if has_key(g:MRU_Filename_Format, 'syntax')
+        execute "syntax match MRUFileName '" . g:MRU_Filename_Format.syntax . "'"
+        highlight default link MRUFileName Identifier
+    endif
 
     setlocal nomodifiable
 endfunction
