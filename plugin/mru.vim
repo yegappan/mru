@@ -792,7 +792,6 @@ function! s:MRU_Open_Window(...)
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
     nnoremap <buffer> <silent> q :close<CR>
-    nnoremap <buffer> <silent> <Esc> :close<CR>
 
     " Restore the previous cpoptions settings
     let &cpoptions = old_cpoptions
