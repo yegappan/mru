@@ -274,6 +274,8 @@ if !exists('MRU_File')
             endif
         endif
     endif
+else
+    let MRU_File = expand(MRU_File)
 endif
 
 " Option for enabling or disabling the MRU menu
