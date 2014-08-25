@@ -331,6 +331,7 @@ endif
 " Control to temporarily lock the MRU list. Used to prevent files from
 " getting added to the MRU list when the ':vimgrep' command is executed.
 let s:mru_list_locked = 0
+let s:last_pat = ''
 
 " MRU_LoadList                          {{{1
 " Loads the latest list of file names from the MRU file
@@ -806,7 +807,7 @@ function! s:MRU_Open_Window(...)
                 \ else<Bar>
                 \     echoerr "Only a single file can be previewed"<Bar>
                 \ endif<CR>
-    nnoremap <buffer> <silent> u :MRU<CR>
+    nnoremap <buffer> <silent> u :call <SID>MRU_Cmd()<CR>
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
     nnoremap <buffer> <silent> x
@@ -865,8 +866,17 @@ endfunction
 " MRU_Cmd                               {{{1
 " Function to handle the MRU command
 "   pat - File name pattern passed to the MRU command
-function! s:MRU_Cmd(pat)
-    if a:pat == ''
+function! s:MRU_Cmd(...)
+    if a:0 == 1
+	let pat = a:1
+	let s:last_pat = pat
+    elseif a:0 == 0
+	let pat = s:last_pat
+    else
+	echoerr 'Wrong number of arguments passed to s:MRU_Cmd'
+    endif
+
+    if pat == ''
         " No arguments specified. Open the MRU window
         call s:MRU_Open_Window()
         return
@@ -884,7 +894,7 @@ function! s:MRU_Cmd(pat)
     " First use the specified string as a literal string and search for
     " filenames containing the string. If only one filename is found,
     " then edit it (unless the user wants to open the MRU window always)
-    let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
+    let m = filter(copy(s:MRU_files), 'stridx(v:val, pat) != -1')
     if len(m) > 0
 	if len(m) == 1 && !g:MRU_Window_Open_Always
 	    call s:MRU_Edit_File(m[0], 0)
@@ -892,7 +902,7 @@ function! s:MRU_Cmd(pat)
 	endif
 
 	" More than one file matches. Try find an accurate match
-	let new_m = filter(m, 'v:val ==# a:pat')
+	let new_m = filter(m, 'v:val ==# pat')
 	if len(new_m) == 1 && !g:MRU_Window_Open_Always
 	    call s:MRU_Edit_File(new_m[0], 0)
 	    return
@@ -900,25 +910,25 @@ function! s:MRU_Cmd(pat)
 
 	" Couldn't find an exact match, open the MRU window with all the
         " files matching the pattern.
-	call s:MRU_Open_Window(a:pat)
+	call s:MRU_Open_Window(pat)
 	return
     endif
 
     " Use the specified string as a regular expression pattern and search
     " for filenames matching the pattern
-    let m = filter(copy(s:MRU_files), 'v:val =~? a:pat')
+    let m = filter(copy(s:MRU_files), 'v:val =~? pat')
 
     if len(m) == 0
         " If an existing file (not present in the MRU list) is specified,
         " then open the file.
-        if filereadable(a:pat)
-            call s:MRU_Edit_File(a:pat, 0)
+        if filereadable(pat)
+            call s:MRU_Edit_File(pat, 0)
             return
         endif
 
         " No filenames matching the specified pattern are found
         call s:MRU_Warn_Msg("MRU file list doesn't contain " .
-                    \ "files matching " . a:pat)
+                    \ "files matching " . pat)
         return
     endif
 
@@ -927,7 +937,7 @@ function! s:MRU_Cmd(pat)
         return
     endif
 
-    call s:MRU_Open_Window(a:pat)
+    call s:MRU_Open_Window(pat)
 endfunction
 
 " MRU_add_files_to_menu                 {{{1
