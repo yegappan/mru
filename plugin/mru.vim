@@ -722,6 +722,7 @@ function! s:MRU_Open_Window(...)
         endif
 
         " Delete the contents of the buffer to the black-hole register
+        setlocal modifiable
         silent! %delete _
     else
         if g:MRU_Use_Current_Window
@@ -757,8 +758,6 @@ function! s:MRU_Open_Window(...)
             exe 'silent! botright ' . g:MRU_Window_Height . 'split ' . wcmd
         endif
     endif
-
-    setlocal modifiable
 
     " Mark the buffer as scratch
     setlocal buftype=nofile
