@@ -810,6 +810,8 @@ function! s:MRU_Open_Window(...)
     nnoremap <buffer> <silent> u :MRU<CR>
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
+    nnoremap <buffer> <silent> x
+		\ :call <SID>MRU_Delete_From_List()<CR>
     nnoremap <buffer> <silent> q :close<CR>
 
     " Restore the previous cpoptions settings
@@ -1021,6 +1023,26 @@ function! s:MRU_Refresh_Menu()
     let &cpoptions = old_cpoptions
 endfunction
 
+" MRU_Check                             {{{1
+" check and remove unreadable files
+function s:MRU_Check()
+  call filter(s:MRU_files, 'filereadable(v:val)')
+  call s:MRU_SaveList()
+  call s:MRU_Refresh_Menu()
+endfunction
+
+" MRU_Delete_From_List                  {{{1
+" delete unwanted items from list
+function! s:MRU_Delete_From_List()
+    call filter(s:MRU_files, 'v:val != matchstr(getline("."), g:MRU_Filename_Format.parser)')
+    setlocal modifiable
+    del _
+    setlocal nomodifiable
+    call s:MRU_SaveList()
+    call s:MRU_Refresh_Menu()
+endfunction
+
+
 " Load the MRU list on plugin startup
 call s:MRU_LoadList()
 
@@ -1042,6 +1064,7 @@ command! -nargs=? -complete=customlist,s:MRU_Complete MRU
 command! -nargs=? -complete=customlist,s:MRU_Complete Mru
             \ call s:MRU_Cmd(<q-args>)
 
+command! MRUCheck call s:MRU_Check()
 " }}}
 
 " restore 'cpo'
