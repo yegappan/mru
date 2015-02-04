@@ -483,11 +483,13 @@ function! s:MRU_Edit_File(filename, sanitized)
             exe winnum . 'wincmd w'
         endif
     else
-        if &modified || &buftype != '' || &previewwindow
+        if !&hidden && (&modified || &buftype != '' || &previewwindow)
             " Current buffer has unsaved changes or is a special buffer or is
-            " the preview window.  So open the file in a new window
+            " the preview window.  The 'hidden' option is also not set.
+            " So open the file in a new window.
             exe 'split ' . esc_fname
         else
+            " The current file can be replaced with the selected file.
             exe 'edit ' . esc_fname
         endif
     endif
@@ -590,7 +592,7 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
 
             let split_window = 0
 
-            if &modified || &previewwindow || a:multi
+            if (!&hidden && (&modified || &previewwindow)) || a:multi
                 " Current buffer has unsaved changes or is the preview window
                 " or the user is opening multiple files
                 " So open the file in a new window
