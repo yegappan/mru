@@ -1,8 +1,8 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.8.1
-" Last Modified: March 9, 2014
-" Copyright: Copyright (C) 2003-2014 Yegappan Lakshmanan
+" Last Modified: Feb 3, 2015
+" Copyright: Copyright (C) 2003-2015 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
@@ -518,7 +518,7 @@ function! s:MRU_Open_File_In_Tab(fname, esc_fname)
 	    exe 'tabnext ' . i
 	else
 	    " Open a new tab as the last tab page
-	    exe '999tabnew ' . a:esc_fname
+	    exe '$tabnew ' . a:esc_fname
 	endif
     endif
 
@@ -704,6 +704,8 @@ function! s:MRU_Open_Window(...)
             " If not already in the window, jump to it
             exe winnum . 'wincmd w'
         endif
+
+        setlocal modifiable
 
         " Delete the contents of the buffer to the black-hole register
         silent! %delete _
