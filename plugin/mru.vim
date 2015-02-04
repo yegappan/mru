@@ -1,6 +1,6 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.8.1
+" Version: 3.9
 " Last Modified: Feb 3, 2015
 " Copyright: Copyright (C) 2003-2015 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
