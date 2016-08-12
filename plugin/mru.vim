@@ -1,8 +1,8 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.8
-" Last Modified: January 22, 2014
-" Copyright: Copyright (C) 2003-2014 Yegappan Lakshmanan
+" Version: 3.9
+" Last Modified: Feb 3, 2015
+" Copyright: Copyright (C) 2003-2015 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
@@ -32,24 +32,12 @@
 " Installation
 " ------------
 " 1. Copy the mru.vim file to one of the following directories:
-"
 "       $HOME/.vim/plugin     - Unix like systems
 "       $HOME/vimfiles/plugin - MS-Windows
 "       $VIM:vimfiles:plugin  - Macintosh
 "       $VIM/vimfiles/plugin  - All
-"
-"    Refer to the following Vim help topics for more information about Vim
-"    plugins:
-"
-"       :help add-plugin
-"       :help add-global-plugin
-"       :help runtimepath
-"
-" 2. Set the MRU_File Vim variable in the .vimrc file to the location of a
-"    file to store the most recently edited file names. This step is needed
-"    only if you want to change the default MRU filename.
-" 3. Restart Vim.
-" 4. You can use the ":MRU" command to list and edit the recently used files.
+" 2. Restart Vim.
+" 3. You can use the ":MRU" command to list and edit the recently used files.
 "    In GUI Vim, you can use the 'File->Recent Files' menu to access the
 "    recently used files.
 "
@@ -123,6 +111,16 @@
 " Whenever the MRU list changes, the MRU file is updated with the latest MRU
 " list. When you have multiple instances of Vim running at the same time, the
 " latest MRU list will show up in all the instances of Vim.
+"
+" The MRUFilename syntax group is used to highlight the file names in the MRU
+" window. By default, this syntax group is linked to the Identifier highlight
+" group. You can change the highlight group by adding the following line in
+" your .vimrc:
+"
+"    highlight link MRUFileName LineNr
+"
+" The MRU buffer uses the 'mru file type. You can use this file type to add
+" custom auto commands, syntax highlighting, etc.
 "
 " Configuration
 " -------------
@@ -217,7 +215,8 @@
 " to display the full path without splitting it, you can set this variable
 " as shown below:
 "
-"       let MRU_Filename_Format={'formatter':'v:val', 'parser':'.*'}
+"       let MRU_Filename_Format =
+"       \   {'formatter':'v:val', 'parser':'.*', 'syntax': '[^/\\]\+$'}
 "
 " If you want to define a custom path / name for the recent file menu, you can
 " do something like:
@@ -329,11 +328,13 @@ endif
 " file in parenthesis. This variable controls the expressions used to format
 " and parse the path. This can be changed to display the filenames in a
 " different format. The 'formatter' specifies how to split/format the filename
-" and 'parser' specifies how to read the filename back.
+" and 'parser' specifies how to read the filename back; 'syntax' matches the
+" part to be highlighted.
 if !exists('MRU_Filename_Format')
     let MRU_Filename_Format = {
         \   'formatter': 'fnamemodify(v:val, ":t") . " (" . v:val . ")"',
-        \   'parser': '(\zs.*\ze)'
+        \   'parser': '(\zs.*\ze)',
+        \   'syntax': '^.\{-}\ze('
         \}
 endif
 
@@ -494,11 +495,13 @@ function! s:MRU_Edit_File(filename, sanitized)
             exe winnum . 'wincmd w'
         endif
     else
-        if &modified || &buftype != '' || &previewwindow
+        if !&hidden && (&modified || &buftype != '' || &previewwindow)
             " Current buffer has unsaved changes or is a special buffer or is
-            " the preview window.  So open the file in a new window
+            " the preview window.  The 'hidden' option is also not set.
+            " So open the file in a new window.
             exe 'split ' . esc_fname
         else
+            " The current file can be replaced with the selected file.
             exe 'edit ' . esc_fname
         endif
     endif
@@ -529,7 +532,7 @@ function! s:MRU_Open_File_In_Tab(fname, esc_fname)
 	    exe 'tabnext ' . i
 	else
 	    " Open a new tab as the last tab page
-	    exe '999tabnew ' . a:esc_fname
+	    exe '$tabnew ' . a:esc_fname
 	endif
     endif
 
@@ -601,7 +604,7 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
 
             let split_window = 0
 
-            if &modified || &previewwindow || a:multi
+            if (!&hidden && (&modified || &previewwindow)) || a:multi
                 " Current buffer has unsaved changes or is the preview window
                 " or the user is opening multiple files
                 " So open the file in a new window
@@ -716,6 +719,8 @@ function! s:MRU_Open_Window(...)
             exe winnum . 'wincmd w'
         endif
 
+        setlocal modifiable
+
         " Delete the contents of the buffer to the black-hole register
         silent! %delete _
     else
@@ -806,7 +811,6 @@ function! s:MRU_Open_Window(...)
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
     nnoremap <buffer> <silent> q :close<CR>
-    nnoremap <buffer> <silent> <Esc> :close<CR>
 
     " Restore the previous cpoptions settings
     let &cpoptions = old_cpoptions
@@ -835,6 +839,12 @@ function! s:MRU_Open_Window(...)
 
     " Move the cursor to the beginning of the file
     normal! gg
+
+    " Add syntax highlighting for the file names
+    if has_key(g:MRU_Filename_Format, 'syntax')
+        exe "syntax match MRUFileName '" . g:MRU_Filename_Format.syntax . "'"
+        highlight default link MRUFileName Identifier
+    endif
 
     setlocal nomodifiable
 endfunction
