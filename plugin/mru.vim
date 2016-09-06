@@ -303,6 +303,11 @@ if !exists('MRU_Window_Open_Always')
     let MRU_Window_Open_Always = 0
 endif
 
+" Open the split MRU window at the top rather than at the bottom.
+if !exists('MRU_Open_At_Top')
+    let MRU_Open_At_Top = 0
+endif
+
 " When opening a file from the MRU list, the file is opened in the current
 " tab. If the selected file has to be opened in a tab always, then set the
 " following variable to 1. If the file is already opened in a tab, then the
@@ -742,7 +747,11 @@ function! s:MRU_Open_Window(...)
                 let wcmd = '+buffer' . bufnum
             endif
 
-            exe 'silent! botright ' . g:MRU_Window_Height . 'split ' . wcmd
+            if g:MRU_Open_At_Top
+                exe 'silent! topleft ' . g:MRU_Window_Height . 'split ' . wcmd
+            else
+                exe 'silent! botright ' . g:MRU_Window_Height . 'split ' . wcmd
+            endif
         endif
     endif
 
