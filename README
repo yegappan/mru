@@ -9,3 +9,5 @@ This plugin will work on all the platforms where Vim is supported. This
 plugin will work in both console and GUI Vim. This version of the MRU 
 plugin needs Vim 7.0 and above.
 
+The user manual is available at:
+http://github.com/yegappan/mru/wiki/User-Manual
