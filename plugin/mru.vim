@@ -352,6 +352,15 @@ function! s:MRU_LoadList()
         let s:MRU_files = []
     endif
 
+	" Skip the unreadable files
+	let iTemp = len( s:MRU_files )-1
+    while iTemp >= 0 
+        if 0 == filereadable( s:MRU_files[iTemp] )
+            call remove(s:MRU_files, iTemp)
+        endif
+        let iTemp = iTemp-1
+    endwhile
+
     " Refresh the MRU menu with the latest list of filenames
     call s:MRU_Refresh_Menu()
 endfunction
