@@ -1,6 +1,6 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.9
+" Version: 3.9.1
 " Last Modified: Aug 29, 2018
 " Copyright: Copyright (C) 2003-2018 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
@@ -67,6 +67,8 @@ if !exists('MRU_File')
             endif
         endif
     endif
+else
+    let MRU_File=expand(MRU_File)
 endif
 
 " Option for enabling or disabling the MRU menu
@@ -313,7 +315,8 @@ function! s:MRU_Open_File_In_Tab(fname, esc_fname)
 	    exe 'tabnext ' . i
 	else
 	    " Open a new tab as the last tab page
-	    exe '$tabnew ' . a:esc_fname
+	    tablast
+	    exe 'tabnew ' . a:esc_fname
 	endif
     endif
 

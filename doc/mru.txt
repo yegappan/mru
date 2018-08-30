@@ -182,27 +182,31 @@ example, to remember 1000 most recently used file names, you can use
 >
       let MRU_Max_Entries = 1000
 <
-By default, all the edited file names will be added to the MRU list. If you
-want to exclude file names matching a list of patterns, you can set the
-MRU_Exclude_Files variable to a list of Vim regular expressions. By default,
-this variable is set to an empty string. For example, to not include files
-in the temporary (/tmp, /var/tmp and d:\temp) directories, you can set the
-MRU_Exclude_Files variable to
+By default, all the edited file names are added to the MRU list. If you want
+to exclude file names matching a pattern, then you can set the
+MRU_Exclude_Files variable to a Vim regular expression. If any part of a
+file name matches the regular expression, then it is not added to the MRU
+list. By default, this variable is set to an empty string. For example, to
+not include files in the temporary (/tmp, /var/tmp and d:\temp) directories,
+you can set the MRU_Exclude_Files variable to
 >
       let MRU_Exclude_Files = '^/tmp/.*\|^/var/tmp/.*'  " For Unix
       let MRU_Exclude_Files = '^c:\\temp\\.*'           " For MS-Windows
 <
-The specified pattern should be a Vim regular expression pattern.
+The specified pattern should be a Vim regular expression pattern. Note that
+you can specify multiple patterns using '\|'.
 
-If you want to add only file names matching a set of patterns to the MRU
-list, then you can set the MRU_Include_Files variable. This variable should
-be set to a Vim regular expression pattern. For example, to add only .c and
-.h files to the MRU list, you can set this variable as below:
+If you want to add only file names matching a pattern to the MRU list, then
+you can set the MRU_Include_Files variable. This variable should be set to a
+Vim regular expression pattern. If the regular expression matches any part
+of a file name, then it is added to the MRU list.  For example, to add only
+.c and .h files to the MRU list, you can set this variable as below:
 >
       let MRU_Include_Files = '\.c$\|\.h$'
 <
 By default, MRU_Include_Files is set to an empty string and all the edited
-filenames are added to the MRU list.
+filenames are added to the MRU list. Note that you can specify multiple
+patterns using '\|'.
 
 The default height of the MRU window is 8. You can set the MRU_Window_Height
 variable to change the window height.
