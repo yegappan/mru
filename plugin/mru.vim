@@ -160,6 +160,10 @@ function! s:MRU_SaveList()
     call writefile(l, g:MRU_File)
 endfunction
 
+command!    MRUSaveReadable 
+  \ :call filter(s:MRU_files, 'filereadable(v:val)') |
+  \ :call s:MRU_SaveList()
+
 " MRU_AddFile                           {{{1
 " Adds a file to the MRU file list
 "   acmd_bufnr - Buffer number of the file to add
