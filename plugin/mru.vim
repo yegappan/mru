@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.9.1
-" Last Modified: Aug 29, 2018
+" Version: 3.9.1m
+" Last Modified: 2019-07-04
 " Copyright: Copyright (C) 2003-2018 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -115,9 +115,9 @@ endif
 " part to be highlighted.
 if !exists('MRU_Filename_Format')
     let MRU_Filename_Format = {
-        \   'formatter': 'fnamemodify(v:val, ":t") . " (" . v:val . ")"',
-        \   'parser': '(\zs.*\ze)',
-        \   'syntax': '^.\{-}\ze('
+        \   'formatter':   'fnamemodify(split(v:val,"\\t")[0],":t") . "	" . join(split(v:val,"\\t")[1:],"	") .  "	(" . split(v:val, "\\zs\\t")[0] . ")"',
+        \   'parser':      '(\zs.\+\ze)',
+        \   'syntax': '^\S\+'
         \}
 endif
 
@@ -159,6 +159,10 @@ function! s:MRU_SaveList()
     call extend(l, s:MRU_files)
     call writefile(l, g:MRU_File)
 endfunction
+
+command!    MRUSaveReadable
+  \ :call filter(s:MRU_files, 'filereadable(split(v:val,"\\t")[0])') |
+  \ :call s:MRU_SaveList()
 
 " MRU_AddFile                           {{{1
 " Adds a file to the MRU file list
@@ -211,10 +215,12 @@ function! s:MRU_AddFile(acmd_bufnr)
     call s:MRU_LoadList()
 
     " Remove the new file name from the existing MRU list (if already present)
-    call filter(s:MRU_files, 'v:val !=# fname')
+    " Should be case insensitive search index() - 2019-Mar-28 Mosh
+    call filter(s:MRU_files,   'v:val !~? fname')
 
     " Add the new file list to the beginning of the updated old file list
-    call insert(s:MRU_files, fname, 0)
+    " Save fname DATE PWD 2019-07-03 Mosh
+    call insert(s:MRU_files, fname."\t".strftime("%Y-%b-%d-%H:%M")."\tPWD=".$PWD, 0)
 
     " Trim the list
     if len(s:MRU_files) > g:MRU_Max_Entries
@@ -555,13 +561,17 @@ function! s:MRU_Open_Window(...)
     setlocal filetype=mru
     " Use fixed height for the MRU window
     setlocal winfixheight
+    setlocal ts=12
 
     " Setup the cpoptions properly for the maps to work
     let old_cpoptions = &cpoptions
     set cpoptions&vim
 
     " Create mappings to select and edit a file from the MRU list
+    " 2017-May-15 Mosh, was 'e' to edit, not <CR>
     nnoremap <buffer> <silent> <CR>
+                \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
+    nnoremap <buffer> <silent> e
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
     vnoremap <buffer> <silent> <CR>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
@@ -629,6 +639,15 @@ function! s:MRU_Open_Window(...)
         exe "syntax match MRUFileName '" . g:MRU_Filename_Format.syntax . "'"
         highlight default link MRUFileName Identifier
     endif
+
+    syntax match MRUDate '\d\d\d\d-\w\+-\d\d\S\+'
+    highlight default link MRUDate LineNr
+
+    syntax match MRUPwd 'PWD=\S\+'
+    highlight default link MRUPwd Directory
+
+    syntax match MRUFullPath '(.\+)'
+    highlight default link MRUFullPath MoreMsg
 
     setlocal nomodifiable
 endfunction
