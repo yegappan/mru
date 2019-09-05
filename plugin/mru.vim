@@ -1,3 +1,6 @@
+" What: Remember list of recently edited files, changes by Mosh
+" From http://www.vim.org/scripts/script.php?script_id=521 2017
+
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.9.1m
@@ -115,11 +118,29 @@ endif
 " part to be highlighted.
 if !exists('MRU_Filename_Format')
     let MRU_Filename_Format = {
-        \   'formatter':   'fnamemodify(split(v:val,"\\t")[0],":t") . "	" . join(split(v:val,"\\t")[1:],"	") .  "	(" . split(v:val, "\\zs\\t")[0] . ")"',
+        \   'formatter':   'fnamemodify(split(v:val,"\\t")[0],":t")
+                      \. "	("
+                      \.    split(v:val, "\\zs\\t")[0]
+                      \. ") "
+                      \. join(split(v:val,"\\t")[1:],"	")',
         \   'parser':      '(\zs.\+\ze)',
         \   'syntax': '^\S\+'
         \}
 endif
+
+function! MoshIsPath(in)
+  return filereadable(a:in) || isdirectory(a:in)
+endfunction
+
+function! MoshPathAbbrev(in)
+  " Change /home/mosh/etc to ~/etc
+  let l:in = a:in
+  let dict = { '^'.expand("$HOME").'/' : '~/', }
+  for i in items(dict)
+    let l:in = substitute(l:in,i[0],i[1],'i')
+  endfor
+  return l:in
+endfun
 
 " Control to temporarily lock the MRU list. Used to prevent files from
 " getting added to the MRU list when the ':vimgrep' command is executed.
@@ -161,7 +182,7 @@ function! s:MRU_SaveList()
 endfunction
 
 command!    MRUSaveReadable
-  \ :call filter(s:MRU_files, 'filereadable(split(v:val,"\\t")[0])') |
+  \ :call filter(s:MRU_files, 'MoshIsPath(expand(split(v:val,"\\t")[0]))') |
   \ :call s:MRU_SaveList()
 
 " MRU_AddFile                           {{{1
@@ -205,7 +226,7 @@ function! s:MRU_AddFile(acmd_bufnr)
     " readable then ignore it
     let idx = index(s:MRU_files, fname)
     if idx == -1
-        if !filereadable(fname)
+        if !MoshIsPath(expand(fname))
             " File is not readable and is not in the MRU list
             return
         endif
@@ -214,13 +235,20 @@ function! s:MRU_AddFile(acmd_bufnr)
     " Load the latest MRU file list
     call s:MRU_LoadList()
 
+    let fname2 = MoshPathAbbrev(fname)
+    let pwd2 = MoshPathAbbrev($PWD)
+    let date = strftime("%Y-%b-%d-%H:%M")
+
     " Remove the new file name from the existing MRU list (if already present)
-    " Should be case insensitive search index() - 2019-Mar-28 Mosh
+    " Should be case insensitive search index()
     call filter(s:MRU_files,   'v:val !~? fname')
 
+    " Use no-magic \M, as ~ means $HOME in fname2.
+    call filter(s:MRU_files,   'v:val !~? "\\M".fname2')
+
+    " Save 'filename date pwd' 2019-07-03 Mosh
     " Add the new file list to the beginning of the updated old file list
-    " Save fname DATE PWD 2019-07-03 Mosh
-    call insert(s:MRU_files, fname."\t".strftime("%Y-%b-%d-%H:%M")."\tPWD=".$PWD, 0)
+    call insert(s:MRU_files, fname2."\t".date."\tPWD=".pwd2, 0)
 
     " Trim the list
     if len(s:MRU_files) > g:MRU_Max_Entries
@@ -264,17 +292,17 @@ endfunction
 "   characters or not.
 function! s:MRU_Edit_File(filename, sanitized)
     if !a:sanitized
-	let esc_fname = s:MRU_escape_filename(a:filename)
+        let esc_fname = s:MRU_escape_filename(a:filename)
     else
-	let esc_fname = a:filename
+        let esc_fname = a:filename
     endif
 
     " If the user wants to always open the file in a tab, then open the file
     " in a tab. If it is already opened in a tab, then the cursor will be
     " moved to that tab.
     if g:MRU_Open_File_Use_Tabs
-	call s:MRU_Open_File_In_Tab(a:filename, esc_fname)
-	return
+        call s:MRU_Open_File_In_Tab(a:filename, esc_fname)
+        return
     endif
 
     " If the file is already open in one of the windows, jump to it
@@ -305,31 +333,31 @@ function! s:MRU_Open_File_In_Tab(fname, esc_fname)
     " If the selected file is already open in the current tab or in
     " another tab, jump to it. Otherwise open it in a new tab
     if bufwinnr('^' . a:fname . '$') == -1
-	let tabnum = -1
-	let i = 1
-	let bnum = bufnr('^' . a:fname . '$')
-	while i <= tabpagenr('$')
-	    if index(tabpagebuflist(i), bnum) != -1
-		let tabnum = i
-		break
-	    endif
-	    let i += 1
-	endwhile
+        let tabnum = -1
+        let i = 1
+        let bnum = bufnr('^' . a:fname . '$')
+        while i <= tabpagenr('$')
+            if index(tabpagebuflist(i), bnum) != -1
+                let tabnum = i
+                break
+            endif
+            let i += 1
+        endwhile
 
-	if tabnum != -1
-	    " Goto the tab containing the file
-	    exe 'tabnext ' . i
-	else
-	    " Open a new tab as the last tab page
-	    tablast
-	    exe 'tabnew ' . a:esc_fname
-	endif
+        if tabnum != -1
+            " Goto the tab containing the file
+            exe 'tabnext ' . i
+        else
+            " Open a new tab as the last tab page
+            tablast
+            exe 'tabnew ' . a:esc_fname
+        endif
     endif
 
     " Jump to the window containing the file
     let winnum = bufwinnr('^' . a:fname . '$')
     if winnum != winnr()
-	exe winnum . 'wincmd w'
+        exe winnum . 'wincmd w'
     endif
 endfunction
 
@@ -364,7 +392,7 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
         wincmd p
         exe 'belowright vnew ' . esc_fname
     elseif a:open_type ==# 'newtab' || g:MRU_Open_File_Use_Tabs
-	call s:MRU_Open_File_In_Tab(a:fname, esc_fname)
+        call s:MRU_Open_File_In_Tab(a:fname, esc_fname)
     elseif a:open_type ==# 'preview'
         " Edit the file in the preview window
         exe 'topleft pedit ' . esc_fname
@@ -561,7 +589,7 @@ function! s:MRU_Open_Window(...)
     setlocal filetype=mru
     " Use fixed height for the MRU window
     setlocal winfixheight
-    setlocal ts=12
+    setlocal ts=16
 
     " Setup the cpoptions properly for the maps to work
     let old_cpoptions = &cpoptions
@@ -615,12 +643,12 @@ function! s:MRU_Open_Window(...)
         let m = copy(s:MRU_files)
     else
         " Display only the entries matching the specified pattern
-	" First try using it as a literal pattern
-	let m = filter(copy(s:MRU_files), 'stridx(v:val, a:1) != -1')
-	if len(m) == 0
-	    " No match. Try using it as a regular expression
-	    let m = filter(copy(s:MRU_files), 'v:val =~# a:1')
-	endif
+        " First try using it as a literal pattern
+        let m = filter(copy(s:MRU_files), 'stridx(v:val, a:1) != -1')
+        if len(m) == 0
+            " No match. Try using it as a regular expression
+            let m = filter(copy(s:MRU_files), 'v:val =~# a:1')
+        endif
     endif
 
     " Get the tail part of the file name (without the directory) and display
@@ -688,22 +716,26 @@ function! s:MRU_Cmd(pat)
     " then edit it (unless the user wants to open the MRU window always)
     let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
     if len(m) > 0
-	if len(m) == 1 && !g:MRU_Window_Open_Always
-	    call s:MRU_Edit_File(m[0], 0)
-	    return
-	endif
+        if len(m) == 1 && !g:MRU_Window_Open_Always
+            " 2019-Aug-28 Mosh
+            let m0=split(m[0],'\t')[0]
+            call s:MRU_Edit_File(m0, 0)
+            return
+        endif
 
-	" More than one file matches. Try find an accurate match
-	let new_m = filter(m, 'v:val ==# a:pat')
-	if len(new_m) == 1 && !g:MRU_Window_Open_Always
-	    call s:MRU_Edit_File(new_m[0], 0)
-	    return
-	endif
+        " More than one file matches. Try find an accurate match
+        let new_m = filter(m, 'v:val ==# a:pat')
+        if len(new_m) == 1 && !g:MRU_Window_Open_Always
+            " 2019-Aug-28 Mosh
+            let new_m0=split(new_m[0],'\t')[0]
+            call s:MRU_Edit_File(new_m0, 0)
+            return
+        endif
 
-	" Couldn't find an exact match, open the MRU window with all the
+        " Couldn't find an exact match, open the MRU window with all the
         " files matching the pattern.
-	call s:MRU_Open_Window(a:pat)
-	return
+        call s:MRU_Open_Window(a:pat)
+        return
     endif
 
     " Use the specified string as a regular expression pattern and search
@@ -713,7 +745,7 @@ function! s:MRU_Cmd(pat)
     if len(m) == 0
         " If an existing file (not present in the MRU list) is specified,
         " then open the file.
-        if filereadable(a:pat)
+        if MoshIsPath(expand(a:pat))
             call s:MRU_Edit_File(a:pat, 0)
             return
         endif
@@ -725,7 +757,9 @@ function! s:MRU_Cmd(pat)
     endif
 
     if len(m) == 1 && !g:MRU_Window_Open_Always
-        call s:MRU_Edit_File(m[0], 0)
+        " 2019-Aug-28 Mosh
+        let m0=split(m[0],'\t')[0]
+        call s:MRU_Edit_File(m0, 0)
         return
     endif
 
@@ -756,12 +790,12 @@ function! s:MRU_add_files_to_menu(prefix, file_list)
         let esc_dir_name = escape(dir_name, ".\\" . s:esc_filename_chars)
         let esc_dir_name = substitute(esc_dir_name, '&', '&&', 'g')
 
-	let menu_path = '&File.&Recent\ Files.' . a:prefix . esc_fname .
-		    \ '\ (' . esc_dir_name . ')'
-	let esc_mfname = s:MRU_escape_filename(fname)
+        let menu_path = '&File.&Recent\ Files.' . a:prefix . esc_fname .
+                    \ '\ (' . esc_dir_name . ')'
+        let esc_mfname = s:MRU_escape_filename(fname)
         exe 'anoremenu <silent> ' . menu_path .
                     \ " :call <SID>MRU_Edit_File('" . esc_mfname . "', 1)<CR>"
-	exe 'tmenu ' . menu_path . ' Edit file ' . esc_mfname
+        exe 'tmenu ' . menu_path . ' Edit file ' . esc_mfname
     endfor
 endfunction
 
@@ -789,7 +823,7 @@ function! s:MRU_Refresh_Menu()
     anoremenu <silent> &File.&Recent\ Files.Refresh\ list
                 \ :call <SID>MRU_LoadList()<CR>
     exe 'tmenu File.&Recent\ Files.Refresh\ list Reload the MRU file list from '
-		\ . s:MRU_escape_filename(g:MRU_File)
+                \ . s:MRU_escape_filename(g:MRU_File)
     anoremenu File.&Recent\ Files.-SEP1-           :
 
     " Add the filenames in the MRU list to the menu
@@ -802,7 +836,7 @@ function! s:MRU_Refresh_Menu()
         let mru_list = s:MRU_files
     endif
     if entry_cnt > g:MRU_Max_Submenu_Entries
-	" Split the MRU menu into sub-menus
+        " Split the MRU menu into sub-menus
         for start_idx in range(0, entry_cnt, g:MRU_Max_Submenu_Entries)
             let last_idx = start_idx + g:MRU_Max_Submenu_Entries - 1
             if last_idx >= entry_cnt
