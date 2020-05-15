@@ -1,8 +1,8 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.9.1
-" Last Modified: Aug 29, 2018
-" Copyright: Copyright (C) 2003-2018 Yegappan Lakshmanan
+" Version: 3.9.2
+" Last Modified: March 15, 2020
+" Copyright: Copyright (C) 2003-2020 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
@@ -121,6 +121,8 @@ if !exists('MRU_Filename_Format')
         \}
 endif
 
+let s:MRU_buf_name = '\[Recent\ Files\]'
+
 " Control to temporarily lock the MRU list. Used to prevent files from
 " getting added to the MRU list when the ':vimgrep' command is executed.
 let s:mru_list_locked = 0
@@ -228,7 +230,7 @@ function! s:MRU_AddFile(acmd_bufnr)
     call s:MRU_Refresh_Menu()
 
     " If the MRU window is open, update the displayed MRU list
-    let bname = '__MRU_Files__'
+    let bname = s:MRU_buf_name
     let winnum = bufwinnr(bname)
     if winnum != -1
         let cur_winnr = winnr()
@@ -398,7 +400,7 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
             if &buftype != ''
                 " Current buffer is a special buffer (maybe used by a plugin)
                 if g:MRU_Use_Current_Window == 0 ||
-                            \ bufnr('%') != bufnr('__MRU_Files__')
+                            \ bufnr('%') != bufnr(s:MRU_buf_name)
                     let split_window = 1
                 endif
             endif
@@ -493,7 +495,7 @@ function! s:MRU_Open_Window(...)
     " as the window number will change when new windows are opened.
     let s:MRU_last_buffer = bufnr('%')
 
-    let bname = '__MRU_Files__'
+    let bname = s:MRU_buf_name
 
     " If the window is already open, jump to it
     let winnum = bufwinnr(bname)
@@ -510,14 +512,31 @@ function! s:MRU_Open_Window(...)
     else
         if g:MRU_Use_Current_Window
             " Reuse the current window
-            "
+
+            " If the current buffer has unsaved changes or is a special buffer
+            " or is the preview window and 'hidden' is not set, then open a
+            " new window. Otherwise, open in the current window.
+            if !&hidden && (&modified || &buftype != '' || &previewwindow)
+                let split_window = 1
+            else
+                let split_window = 0
+            endif
+
             " If the __MRU_Files__ buffer exists, then reuse it. Otherwise open
             " a new buffer
             let bufnum = bufnr(bname)
             if bufnum == -1
-                let cmd = 'edit ' . bname
+                if split_window
+                    let cmd = 'split edit ' . bname
+                else
+                    let cmd = 'edit ' . bname
+                endif
             else
-                let cmd = 'buffer ' . bufnum
+                if split_window
+                    let cmd = 'sbuffer ' . bufnum
+                else
+                    let cmd = 'buffer ' . bufnum
+                endif
             endif
 
             exe cmd
