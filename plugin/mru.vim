@@ -121,7 +121,7 @@ if !exists('MRU_Filename_Format')
         \}
 endif
 
-let s:MRU_buf_name = '\[Recent\ Files\]'
+let s:MRU_buf_name = '-RecentFiles-'
 
 " Control to temporarily lock the MRU list. Used to prevent files from
 " getting added to the MRU list when the ':vimgrep' command is executed.
