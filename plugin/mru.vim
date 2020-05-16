@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.9.2
-" Last Modified: March 15, 2020
+" Last Modified: May 15, 2020
 " Copyright: Copyright (C) 2003-2020 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -855,6 +855,22 @@ command! -nargs=? -complete=customlist,s:MRU_Complete MRU
             \ call s:MRU_Cmd(<q-args>)
 command! -nargs=? -complete=customlist,s:MRU_Complete Mru
             \ call s:MRU_Cmd(<q-args>)
+
+" FZF (fuzzy finder) integration
+func s:MRU_FZF_EditFile(fname)
+    call s:MRU_Window_Edit_File(a:fname, 0, 'edit', 'useopen')
+endfunc
+
+func s:MRU_FZF_Run()
+    if !exists('*fzf#run')
+	call s:MRU_Warn_Msg('FZF plugin is not present')
+	return
+    endif
+    call fzf#run(fzf#wrap({'source' : s:MRU_files,
+		\ 'sink' : function('s:MRU_FZF_EditFile'),
+		\'down' : '25%'}, 0))
+endfunc
+command! -nargs=0 FZFMru call s:MRU_FZF_Run()
 
 " }}}
 
