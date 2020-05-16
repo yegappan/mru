@@ -745,14 +745,25 @@ function! s:MRU_add_files_to_menu(prefix, file_list)
 
         " Truncate the directory name if it is long
         let dir_name = fnamemodify(fname, ':h')
-        let len = strchars(dir_name)
-        " Shorten long file names by adding only few characters from
-        " the beginning and end.
-        if len > 30
-            let dir_name = strcharpart(dir_name, 0, 10) .
-                        \ '...' .
-                        \ strcharpart(dir_name, len - 20)
-        endif
+	if v:version >= 8.0 || has("patch-7.4.1730")
+	    let len = strchars(dir_name)
+	    " Shorten long file names by adding only few characters from
+	    " the beginning and end.
+	    if len > 30
+		let dir_name = strcharpart(dir_name, 0, 10) .
+			    \ '...' .
+			    \ strcharpart(dir_name, len - 20)
+	    endif
+	else
+	    let len = strlen(dir_name)
+	    " Shorten long file names by adding only few characters from
+	    " the beginning and end.
+	    if len > 30
+		let dir_name = strpart(dir_name, 0, 10) .
+			    \ '...' .
+			    \ strpart(dir_name, len - 20)
+	    endif
+	endif
         let esc_dir_name = escape(dir_name, ".\\" . s:esc_filename_chars)
         let esc_dir_name = substitute(esc_dir_name, '&', '&&', 'g')
 
