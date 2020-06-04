@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to run unit-tests for the MRU Vim plugin
+# Script to run the unit-tests for the MRU Vim plugin
 
 VIM=/usr/bin/vim
 VIM_CMD="$VIM -N -u NONE -U NONE -i NONE"

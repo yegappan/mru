@@ -2,12 +2,12 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: May 15, 2020
+Last change: June 4, 2020
 
 ==============================================================================
 						*mru-license*
 License: MIT License
-Copyright (c) 2003-2018 Yegappan Lakshmanan
+Copyright (c) 2003-2020 Yegappan Lakshmanan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -63,17 +63,18 @@ vim-plug, volt, Vundle, etc.) to install and manage this plugin.
 Alternatively, you can also manually download and install the plugin
 using the following steps.
 
-1. Download the mru.zip file from the vim.sourceforge.io site.
-2. Unzip the files into the $HOME/.vim or the $HOME/vimfiles directory.  After
-   this step, you should have the following files (the directory structure
-   should be preserved):
+1. Download the mru.zip file from https://github.com/yegappan/mru/releases
+2. Unzip the mru.zip file into the $HOME/.vim directory for Linux/MacOS/Unix
+   systems or the $HOMEPATH/vimfiles directory for MS-Windows.  After this
+   step, you should have the following files (the directory structure should
+   be preserved):
 
 	plugin/mru.vim - MRU plugin
 	doc/mru.txt    - documentation (help) file
 
-3. Change to the $HOME/.vim/doc or $HOME/vimfiles/doc or $VIM/vimfiles/doc
-   directory, start Vim and run the ":helptags ." command to process the
-   help file. Without this step, you cannot jump to the help topics.
+3. Change to the $HOME/.vim/doc or $HOME/vimfiles/doc directory, start Vim and
+   run the ":helptags ." command to process the help file. Without this step,
+   you cannot jump to the MRU help topics.
 4. Restart Vim.
 5. You can use the |:MRU| command to list and edit the recently used files.
    In GUI Vim, you can use the 'File->Recent Files' menu to access the
@@ -81,7 +82,7 @@ using the following steps.
 
 To uninstall the MRU plugin, either use the uninstall command provided by the
 plugin manager or manually remove the plugin/mru.vim, and doc/greplace.txt
-files from the $HOME/.vim or $HOME/vimfiles directory.
+files from either the $HOME/.vim or $HOME/vimfiles directory.
 
 ==============================================================================
 3. Usage					*mru-usage* *:MRU*
