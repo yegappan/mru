@@ -4,7 +4,7 @@
 let MRU_File='vim_mru_file'
 let MRU_Auto_Close=1
 let MRU_Max_Entries=10
-let MRU_buffer_name = '__MRU_Files__'
+let MRU_buffer_name = '-RecentFiles-'
 
 " Function to log test results
 function! LogResult(test, result)
@@ -22,7 +22,7 @@ if s:do_profile
     profile! file */mru.vim
 endif
 
-runtime plugin/mru.vim
+packadd mru
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
@@ -768,6 +768,7 @@ endif
 edit file1.txt
 edit!
 set nohidden
+%bw!
 
 " ==========================================================================
 " Test29
