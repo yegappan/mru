@@ -132,13 +132,22 @@ function! MoshIsPath(in)
   return filereadable(a:in) || isdirectory(a:in)
 endfunction
 
+let g:mosh_mru_abbrev_dict = {
+      \     '^'.expand("$HOME").'/' : '~/',
+      \     '^'.expand("$SRC").'/'  : '$SRC/',
+      \ }
+
 function! MoshPathAbbrev(in)
-  " Change /home/mosh/etc to ~/etc
+  " Abbreviate /home/mosh/etc to ~/etc
   let l:in = a:in
-  let dict = { '^'.expand("$HOME").'/' : '~/', }
-  for i in items(dict)
-    let l:in = substitute(l:in,i[0],i[1],'i')
+
+  if exists('g:mosh_mru_abbrev_dict')
+    for kv in items(g:mosh_mru_abbrev_dict)
+      if isdirectory(expand(kv[1]))
+        let l:in = substitute(l:in,kv[0],kv[1],'i')
+      endif
   endfor
+  endif
   return l:in
 endfun
 
@@ -772,6 +781,8 @@ endfunction
 "   file_list - List of file names to add to the menu
 function! s:MRU_add_files_to_menu(prefix, file_list)
     for fname in a:file_list
+        " 2020-06-13 Mosh
+        let fname=split(fname,'\t')[0]
         " Escape special characters in the filename
         let esc_fname = escape(fnamemodify(fname, ':t'), ".\\" .
                                         \ s:esc_filename_chars)
