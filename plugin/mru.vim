@@ -129,7 +129,7 @@ let s:mru_list_locked = 0
 
 " MRU_LoadList                          {{{1
 " Loads the latest list of file names from the MRU file
-function! s:MRU_LoadList()
+func! s:MRU_LoadList() abort
     " If the MRU file is present, then load the list of filenames. Otherwise
     " start with an empty list.
     if filereadable(g:MRU_File)
@@ -151,21 +151,21 @@ function! s:MRU_LoadList()
 
     " Refresh the MRU menu with the latest list of filenames
     call s:MRU_Refresh_Menu()
-endfunction
+endfunc
 
 " MRU_SaveList                          {{{1
 " Saves the MRU file names to the MRU file
-function! s:MRU_SaveList()
+func! s:MRU_SaveList() abort
     let l = []
     call add(l, '# Most recently edited files in Vim (version 3.0)')
     call extend(l, s:MRU_files)
     call writefile(l, g:MRU_File)
-endfunction
+endfunc
 
 " MRU_AddFile                           {{{1
 " Adds a file to the MRU file list
 "   acmd_bufnr - Buffer number of the file to add
-function! s:MRU_AddFile(acmd_bufnr)
+func! s:MRU_AddFile(acmd_bufnr) abort
     if s:mru_list_locked
         " MRU list is currently locked
         return
@@ -239,26 +239,26 @@ function! s:MRU_AddFile(acmd_bufnr)
             exe cur_winnr . 'wincmd w'
         endif
     endif
-endfunction
+endfunc
 
 " MRU_escape_filename                   {{{1
 " Escape special characters in a filename. Special characters in file names
 " that should be escaped (for security reasons)
 let s:esc_filename_chars = ' *?[{`$%#"|!<>();&' . "'\t\n"
-function! s:MRU_escape_filename(fname)
+func! s:MRU_escape_filename(fname) abort
     if exists("*fnameescape")
         return fnameescape(a:fname)
     else
         return escape(a:fname, s:esc_filename_chars)
     endif
-endfunction
+endfunc
 
 " MRU_Edit_File                         {{{1
 " Edit the specified file
 "   filename - Name of the file to edit
 "   sanitized - Specifies whether the filename is already escaped for special
 "   characters or not.
-function! s:MRU_Edit_File(filename, sanitized)
+func! s:MRU_Edit_File(filename, sanitized) abort
     if !a:sanitized
 	let esc_fname = s:MRU_escape_filename(a:filename)
     else
@@ -290,14 +290,14 @@ function! s:MRU_Edit_File(filename, sanitized)
             exe 'edit ' . esc_fname
         endif
     endif
-endfunction
+endfunc
 
 " MRU_Open_File_In_Tab
 " Open a file in a tab. If the file is already opened in a tab, jump to the
 " tab. Otherwise, create a new tab and open the file.
 "   fname     : Name of the file to open
 "   esc_fname : File name with special characters escaped
-function! s:MRU_Open_File_In_Tab(fname, esc_fname)
+func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
     " If the selected file is already open in the current tab or in
     " another tab, jump to it. Otherwise open it in a new tab
     if bufwinnr('^' . a:fname . '$') == -1
@@ -327,7 +327,7 @@ function! s:MRU_Open_File_In_Tab(fname, esc_fname)
     if winnum != winnr()
 	exe winnum . 'wincmd w'
     endif
-endfunction
+endfunc
 
 " MRU_Window_Edit_File                  {{{1
 "   fname     : Name of the file to edit. May specify single or multiple
@@ -346,7 +346,7 @@ endfunction
 "               newtab  - Open the file in a new tab. If the file is already
 "                         opened in a tab, then jump to that tab.
 "               preview - Open the file in the preview window
-function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
+func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
     let esc_fname = s:MRU_escape_filename(a:fname)
 
     if a:open_type ==# 'newwin_horiz'
@@ -423,7 +423,7 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
             endif
         endif
     endif
-endfunction
+endfunc
 
 " MRU_Select_File_Cmd                   {{{1
 " Open a file selected from the MRU window
@@ -437,7 +437,7 @@ endfunction
 "     'newtab' to open the file in a new tab.
 " If multiple file names are selected using visual mode, then open multiple
 " files (either in split windows or tabs)
-function! s:MRU_Select_File_Cmd(opt) range
+func! s:MRU_Select_File_Cmd(opt) range abort
     let [edit_type, open_type] = split(a:opt, ',')
 
     let fnames = getline(a:firstline, a:lastline)
@@ -465,21 +465,21 @@ function! s:MRU_Select_File_Cmd(opt) range
             let multi = 1
         endif
     endfor
-endfunction
+endfunc
 
 " MRU_Warn_Msg                          {{{1
 " Display a warning message
-function! s:MRU_Warn_Msg(msg)
+func! s:MRU_Warn_Msg(msg) abort
     echohl WarningMsg
     echo a:msg
     echohl None
-endfunction
+endfunc
 
 " MRU_Open_Window                       {{{1
 " Display the Most Recently Used file list in a temporary window.
 " If the optional argument is supplied, then it specifies the pattern of files
 " to selectively display in the MRU window.
-function! s:MRU_Open_Window(...)
+func! s:MRU_Open_Window(...) abort
 
     " Load the latest MRU file list
     call s:MRU_LoadList()
@@ -650,11 +650,11 @@ function! s:MRU_Open_Window(...)
     endif
 
     setlocal nomodifiable
-endfunction
+endfunc
 
 " MRU_Complete                          {{{1
 " Command-line completion function used by :MRU command
-function! s:MRU_Complete(ArgLead, CmdLine, CursorPos)
+func! s:MRU_Complete(ArgLead, CmdLine, CursorPos) abort
     if a:ArgLead == ''
         " Return the complete list of MRU files
         return s:MRU_files
@@ -662,12 +662,12 @@ function! s:MRU_Complete(ArgLead, CmdLine, CursorPos)
         " Return only the files matching the specified pattern
         return filter(copy(s:MRU_files), 'v:val =~? a:ArgLead')
     endif
-endfunction
+endfunc
 
 " MRU_Cmd                               {{{1
 " Function to handle the MRU command
 "   pat - File name pattern passed to the MRU command
-function! s:MRU_Cmd(pat)
+func! s:MRU_Cmd(pat) abort
     if a:pat == ''
         " No arguments specified. Open the MRU window
         call s:MRU_Open_Window()
@@ -730,13 +730,13 @@ function! s:MRU_Cmd(pat)
     endif
 
     call s:MRU_Open_Window(a:pat)
-endfunction
+endfunc
 
 " MRU_add_files_to_menu                 {{{1
 " Adds a list of files to the "Recent Files" sub menu under the "File" menu.
 "   prefix - Prefix to use for each of the menu entries
 "   file_list - List of file names to add to the menu
-function! s:MRU_add_files_to_menu(prefix, file_list)
+func! s:MRU_add_files_to_menu(prefix, file_list) abort
     for fname in a:file_list
         " Escape special characters in the filename
         let esc_fname = escape(fnamemodify(fname, ':t'), ".\\" .
@@ -774,11 +774,11 @@ function! s:MRU_add_files_to_menu(prefix, file_list)
                     \ " :call <SID>MRU_Edit_File('" . esc_mfname . "', 1)<CR>"
 	exe 'tmenu ' . menu_path . ' Edit file ' . esc_mfname
     endfor
-endfunction
+endfunc
 
 " MRU_Refresh_Menu                      {{{1
 " Refresh the MRU menu
-function! s:MRU_Refresh_Menu()
+func! s:MRU_Refresh_Menu() abort
     if !has('menu') || !g:MRU_Add_Menu
         " No support for menus
         return
@@ -833,7 +833,7 @@ function! s:MRU_Refresh_Menu()
 
     " Restore the previous cpoptions settings
     let &cpoptions = old_cpoptions
-endfunction
+endfunc
 
 " Load the MRU list on plugin startup
 call s:MRU_LoadList()
@@ -857,11 +857,11 @@ command! -nargs=? -complete=customlist,s:MRU_Complete Mru
             \ call s:MRU_Cmd(<q-args>)
 
 " FZF (fuzzy finder) integration
-func s:MRU_FZF_EditFile(fname)
+func s:MRU_FZF_EditFile(fname) abort
     call s:MRU_Window_Edit_File(a:fname, 0, 'edit', 'useopen')
 endfunc
 
-func s:MRU_FZF_Run()
+func s:MRU_FZF_Run() abort
     if !exists('*fzf#run')
 	call s:MRU_Warn_Msg('FZF plugin is not present')
 	return

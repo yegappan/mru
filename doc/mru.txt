@@ -81,7 +81,7 @@ using the following steps.
    recently used files.
 
 To uninstall the MRU plugin, either use the uninstall command provided by the
-plugin manager or manually remove the plugin/mru.vim, and doc/greplace.txt
+plugin manager or manually remove the plugin/mru.vim, and doc/mru.txt
 files from either the $HOME/.vim or $HOME/vimfiles directory.
 
 ==============================================================================
