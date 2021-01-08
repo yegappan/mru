@@ -316,9 +316,13 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
 	    " Goto the tab containing the file
 	    exe 'tabnext ' . i
 	else
-	    " Open a new tab as the last tab page
-	    tablast
-	    exe 'tabnew ' . a:esc_fname
+        if (winnr("$") == 1) && (bufname("") == "") && !&modified
+            exe 'e ' . a:esc_fname
+        else
+            " Open a new tab as the last tab page
+            tablast
+            exe 'tabnew ' . a:esc_fname
+        endif
 	endif
     endif
 
