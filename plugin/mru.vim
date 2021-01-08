@@ -106,6 +106,14 @@ if !exists('MRU_Open_File_Use_Tabs')
     let MRU_Open_File_Use_Tabs = 0
 endif
 
+" When opening a file from the MRU list in a tab, if the current tab is empty,
+" do not create a new tab. With the below variable set to 1, it will use the
+" current empty tab.
+
+if !exists('MRU_Open_File_Reuse_Current_Empty_Tab')
+    let MRU_Open_File_Reuse_Current_Empty_Tab = 1
+endif
+
 " Format of the file names displayed in the MRU window.
 " The default is to display the filename followed by the complete path to the
 " file in parenthesis. This variable controls the expressions used to format
@@ -316,9 +324,14 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
 	    " Goto the tab containing the file
 	    exe 'tabnext ' . i
 	else
-	    " Open a new tab as the last tab page
-	    tablast
-	    exe 'tabnew ' . a:esc_fname
+		if (winnr("$") == 1) && (bufname("") == "") && !&l:modified && g:MRU_Open_File_Reuse_Current_Empty_Tab
+	        " Open the file in the current empty tab
+	        exe 'edit ' . a:esc_fname
+	    else
+	        " Open a new tab as the last tab page
+	        tablast
+	        exe 'tabnew ' . a:esc_fname
+	    endif
 	endif
     endif
 
