@@ -132,6 +132,10 @@ window from the MRU list.
 You can close the MRU window by pressing the 'q' key or the <Esc> key or
 using one of the Vim window commands.
 
+By default, the MRU window is opened as the bottom-most window. You can use
+command modifiers like |:topleft| or |:botright| with the :MRU command to
+control where the window is opened.
+
 To display only files matching a pattern from the MRU list in the MRU
 window, you can specify a pattern to the |:MRU| command. For example, to
 display only file names matching "vim" in them, you can use the following

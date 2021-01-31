@@ -234,7 +234,7 @@ func! s:MRU_AddFile(acmd_bufnr) abort
     let winnum = bufwinnr(bname)
     if winnum != -1
         let cur_winnr = winnr()
-        call s:MRU_Open_Window()
+        call s:MRU_Open_Window('', '')
         if winnr() != cur_winnr
             exe cur_winnr . 'wincmd w'
         endif
@@ -481,9 +481,11 @@ endfunc
 
 " MRU_Open_Window                       {{{1
 " Display the Most Recently Used file list in a temporary window.
-" If the optional argument is supplied, then it specifies the pattern of files
+" If the 'pat' argument is not empty, then it specifies the pattern of files
 " to selectively display in the MRU window.
-func! s:MRU_Open_Window(...) abort
+" The 'splitdir' argument specifies the location (topleft, belowright, etc.)
+" of the MRU window.
+func! s:MRU_Open_Window(pat, splitdir) abort
 
     " Load the latest MRU file list
     call s:MRU_LoadList()
@@ -561,7 +563,8 @@ func! s:MRU_Open_Window(...) abort
                 let wcmd = '+buffer' . bufnum
             endif
 
-            exe 'silent! botright ' . g:MRU_Window_Height . 'split ' . wcmd
+            exe 'silent! ' . a:splitdir == '' ? 'botright' : a:splitdir . ' '
+				    \ . g:MRU_Window_Height . 'split ' . wcmd
         endif
     endif
 
@@ -625,16 +628,16 @@ func! s:MRU_Open_Window(...) abort
     let &cpoptions = old_cpoptions
 
     " Display the MRU list
-    if a:0 == 0
+    if a:pat == ''
         " No search pattern specified. Display the complete list
         let m = copy(s:MRU_files)
     else
         " Display only the entries matching the specified pattern
 	" First try using it as a literal pattern
-	let m = filter(copy(s:MRU_files), 'stridx(v:val, a:1) != -1')
+	let m = filter(copy(s:MRU_files), 'stridx(v:val, pat) != -1')
 	if len(m) == 0
 	    " No match. Try using it as a regular expression
-	    let m = filter(copy(s:MRU_files), 'v:val =~# a:1')
+	    let m = filter(copy(s:MRU_files), 'v:val =~# pat')
 	endif
     endif
 
@@ -673,10 +676,10 @@ endfunc
 " MRU_Cmd                               {{{1
 " Function to handle the MRU command
 "   pat - File name pattern passed to the MRU command
-func! s:MRU_Cmd(pat) abort
+func! s:MRU_Cmd(pat, splitdir) abort
     if a:pat == ''
         " No arguments specified. Open the MRU window
-        call s:MRU_Open_Window()
+        call s:MRU_Open_Window('', a:splitdir)
         return
     endif
 
@@ -708,7 +711,7 @@ func! s:MRU_Cmd(pat) abort
 
 	" Couldn't find an exact match, open the MRU window with all the
         " files matching the pattern.
-	call s:MRU_Open_Window(a:pat)
+	call s:MRU_Open_Window(a:pat, a:splitdir)
 	return
     endif
 
@@ -735,7 +738,7 @@ func! s:MRU_Cmd(pat) abort
         return
     endif
 
-    call s:MRU_Open_Window(a:pat)
+    call s:MRU_Open_Window(a:pat, a:splitdir)
 endfunc
 
 " MRU_add_files_to_menu                 {{{1
@@ -869,10 +872,17 @@ autocmd QuickFixCmdPre *vimgrep* let s:mru_list_locked = 1
 autocmd QuickFixCmdPost *vimgrep* let s:mru_list_locked = 0
 
 " Command to open the MRU window
-command! -nargs=? -complete=customlist,s:MRU_Complete MRU
-            \ call s:MRU_Cmd(<q-args>)
-command! -nargs=? -complete=customlist,s:MRU_Complete Mru
-            \ call s:MRU_Cmd(<q-args>)
+if v:version >= 800
+  command! -nargs=? -complete=customlist,s:MRU_Complete MRU
+              \ call s:MRU_Cmd(<q-args>, <q-mods>)
+  command! -nargs=? -complete=customlist,s:MRU_Complete Mru
+              \ call s:MRU_Cmd(<q-args>, <q-mods>)
+else
+  command! -nargs=? -complete=customlist,s:MRU_Complete MRU
+              \ call s:MRU_Cmd(<q-args>, '')
+  command! -nargs=? -complete=customlist,s:MRU_Complete Mru
+              \ call s:MRU_Cmd(<q-args>, '')
+endif
 
 " FZF (fuzzy finder) integration
 func s:MRU_FZF_EditFile(fname) abort
