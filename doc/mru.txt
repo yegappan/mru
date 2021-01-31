@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: June 4, 2020
+Last change: Jan 30, 2021
 
 ==============================================================================
 						*mru-license*
@@ -125,6 +125,9 @@ tab.
 
 You can press the 'u' key in the MRU window to update the file list. This is
 useful if you keep the MRU window open always.
+
+You can press the 'd' key to remove the entry under the cursor in the MRU
+window from the MRU list.
 
 You can close the MRU window by pressing the 'q' key or the <Esc> key or
 using one of the Vim window commands.

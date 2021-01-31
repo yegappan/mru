@@ -1,8 +1,8 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.9.2
-" Last Modified: June 4, 2020
-" Copyright: Copyright (C) 2003-2020 Yegappan Lakshmanan
+" Version: 3.9.3
+" Last Modified: Jan 30, 2021
+" Copyright: Copyright (C) 2003-2021 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
@@ -617,6 +617,8 @@ func! s:MRU_Open_Window(...) abort
     nnoremap <buffer> <silent> u :MRU<CR>
     nnoremap <buffer> <silent> <2-LeftMouse>
                 \ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
+    nnoremap <buffer> <silent> d
+                \ :<C-U>call <SID>MRU_Delete_From_List()<CR>
     nnoremap <buffer> <silent> q :close<CR>
 
     " Restore the previous cpoptions settings
@@ -837,6 +839,18 @@ func! s:MRU_Refresh_Menu() abort
 
     " Restore the previous cpoptions settings
     let &cpoptions = old_cpoptions
+endfunc
+
+" MRU_Delete_From_List	{{{1
+" remove the entry under cursor in the MRU window from the MRU list
+func s:MRU_Delete_From_List()
+    call filter(s:MRU_files,
+	    \ 'v:val != matchstr(getline("."), g:MRU_Filename_Format.parser)')
+    setlocal modifiable
+    del _
+    setlocal nomodifiable
+    call s:MRU_SaveList()
+    call s:MRU_Refresh_Menu()
 endfunc
 
 " Load the MRU list on plugin startup
