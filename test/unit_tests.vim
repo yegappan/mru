@@ -79,7 +79,7 @@ func Test_03()
   " Select the last file in the MRU window
   exe "normal \<Enter>"
 
-  if fnamemodify(bufname('%'), ':p:t') !=# 'file3.txt'
+  if fnamemodify(@%, ':p:t') !=# 'file3.txt'
     call LogResult(test_name, "FAIL (1)")
   else
     " Make sure the MRU window is closed
@@ -131,19 +131,19 @@ func Test_05()
   call search('file1.txt')
   exe "normal \<Enter>"
 
-  if winnr() != 1 || fnamemodify(bufname('%'), ':p:t') !=# 'file1.txt'
+  if winnr() != 1 || fnamemodify(@%, ':p:t') !=# 'file1.txt'
     call LogResult(test_name, "FAIL (1)")
   else
     MRU
     call search('file2.txt')
     exe "normal \<Enter>"
-    if winnr() != 2 || fnamemodify(bufname('%'), ':p:t') !=# 'file2.txt'
+    if winnr() != 2 || fnamemodify(@%, ':p:t') !=# 'file2.txt'
       call LogResult(test_name, "FAIL (2)")
     else
       MRU
       call search('file3.txt')
       exe "normal \<Enter>"
-      if winnr() != 3 || fnamemodify(bufname('%'), ':p:t') !=# 'file3.txt'
+      if winnr() != 3 || fnamemodify(@%, ':p:t') !=# 'file3.txt'
         call LogResult(test_name, "FAIL (3)")
       else
         call LogResult(test_name, 'pass')
@@ -166,7 +166,7 @@ func Test_06()
   MRU
   normal o
 
-  if winnr() == 3 && fnamemodify(bufname('%'), ':p:t') ==# 'file1.txt'
+  if winnr() == 3 && fnamemodify(@%, ':p:t') ==# 'file1.txt'
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -176,7 +176,7 @@ endfunc
 " ==========================================================================
 " Test7
 " MRU opens the selected file in a new window if the previous buffer is
-" modified. 
+" modified.
 " ==========================================================================
 func Test_07()
   let test_name = 'test7'
@@ -189,7 +189,7 @@ func Test_07()
   call search('file3.txt')
   exe "normal \<Enter>"
   if winnr() == 1 && winnr('$') == 2 &&
-        \ fnamemodify(bufname('%'), ':p:t') ==# 'file3.txt'
+        \ fnamemodify(@%, ':p:t') ==# 'file3.txt'
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -241,12 +241,12 @@ func Test_09()
   MRU
   call search('file2.txt')
   normal O
-  let b1 = bufname('%')
+  let b1 = @%
   wincmd h
-  let b2 = bufname('%')
+  let b2 = @%
   wincmd l
-  let b3 = bufname('%')
-  if winnr('$') == 2 && b1 ==# 'file2.txt' && 
+  let b3 = @%
+  if winnr('$') == 2 && b1 ==# 'file2.txt' &&
         \ b2 ==# 'file1.txt' && b3 ==# 'file2.txt'
     call LogResult(test_name, 'pass')
   else
@@ -267,8 +267,8 @@ func Test_10()
   normal p
   wincmd P
   let p1 = &previewwindow
-  let b1 = bufname('%')
-  if winnr('$') == 2 && &previewwindow && bufname('%') =~# 'file3.txt'
+  let b1 = @%
+  if winnr('$') == 2 && &previewwindow && @% =~# 'file3.txt'
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -293,11 +293,11 @@ func Test_11()
   MRU
   call search('file3.txt')
   normal t
-  if fnamemodify(bufname('%'), ':p:t') ==# 'file3.txt' && tabpagenr() == 5
+  if fnamemodify(@%, ':p:t') ==# 'file3.txt' && tabpagenr() == 5
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
-    call LogResult(test_name, "file = " . fnamemodify(bufname('%'), ':p:t'))
+    call LogResult(test_name, "file = " . fnamemodify(@%, ':p:t'))
     call LogResult(test_name, "tab page = " . tabpagenr())
   endif
 
@@ -336,7 +336,7 @@ func Test_13()
   exe "normal \<Enter>"
   if winnr() == 1 && winnr('$') == 2 &&
         \ &previewwindow == 0 &&
-        \ fnamemodify(bufname('%'), ':p:t') ==# 'file2.txt'
+        \ fnamemodify(@%, ':p:t') ==# 'file2.txt'
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -362,7 +362,7 @@ func Test_14()
   exe "normal \<Enter>"
   if winnr() == 1 && winnr('$') == 2 &&
         \ &buftype == '' &&
-        \ fnamemodify(bufname('%'), ':p:t') ==# 'file3.txt'
+        \ fnamemodify(@%, ':p:t') ==# 'file3.txt'
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -398,7 +398,7 @@ func Test_15()
   call search('file3.txt')
   exe "normal t"
   if tabpagenr() != 3
-        \ || fnamemodify(bufname('%'), ':p:t') !=# 'file3.txt'
+        \ || fnamemodify(@%, ':p:t') !=# 'file3.txt'
         \ || winnr() != 2
     call LogResult(test_name, "FAIL (1)")
   else
@@ -406,7 +406,7 @@ func Test_15()
     call search('file1.txt')
     exe "normal t"
     if tabpagenr() != 1
-          \ || fnamemodify(bufname('%'), ':p:t') !=# 'file1.txt'
+          \ || fnamemodify(@%, ':p:t') !=# 'file1.txt'
           \ || winnr() != 2
       call LogResult(test_name, "FAIL (2)")
     else
@@ -414,7 +414,7 @@ func Test_15()
       call search('file2.txt')
       exe "normal t"
       if tabpagenr() != 2
-            \ || fnamemodify(bufname('%'), ':p:t') !=# 'file2.txt'
+            \ || fnamemodify(@%, ':p:t') !=# 'file2.txt'
             \ || winnr() != 2
         call LogResult(test_name, "FAIL (3)")
       else
@@ -630,7 +630,7 @@ func Test_21()
   edit file3.txt
   enew
   MRU file2.txt
-  if fnamemodify(bufname('%'), ':p:t') ==# 'file2.txt' && winnr('$') == 1
+  if fnamemodify(@%, ':p:t') ==# 'file2.txt' && winnr('$') == 1
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -652,7 +652,7 @@ func Test_22()
   edit file3.txt
   only
   MRU file.*
-  if bufname('%') != g:MRU_buffer_name
+  if @% != g:MRU_buffer_name
     call LogResult(test_name, 'FAIL')
   else
     let l = getline(1, "$")
@@ -680,7 +680,7 @@ func Test_23()
   edit file3.txt
   only
   MRU file
-  if bufname('%') != g:MRU_buffer_name
+  if @% != g:MRU_buffer_name
     call LogResult(test_name, 'FAIL')
   else
     let l = getline(1, "$")
@@ -704,7 +704,7 @@ func Test_24()
   redir => msg
   MRU nonexistingfile.txt
   redir END
-  if bufname('%') == g:MRU_buffer_name ||
+  if @% == g:MRU_buffer_name ||
         \ msg !~# "MRU file list doesn't contain files " .
         \ "matching nonexistingfile.txt"
     call LogResult(test_name, 'FAIL')
@@ -775,7 +775,7 @@ func Test_27()
   call search('file1.txt')
   exe "normal \<Enter>"
   if winnr() == 1 && winnr('$') == 2 &&
-        \ fnamemodify(bufname('%'), ':p:t') ==# 'file1.txt'
+        \ fnamemodify(@%, ':p:t') ==# 'file1.txt'
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -803,7 +803,7 @@ func Test_28()
   call search('file2.txt')
   exe "normal \<Enter>"
   if winnr('$') == 1 &&
-        \ fnamemodify(bufname('%'), ':p:t') ==# 'file2.txt'
+        \ fnamemodify(@%, ':p:t') ==# 'file2.txt'
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -934,7 +934,7 @@ func Test_33()
   edit file1.txt
   let g:MRU_Use_Current_Window=1
   MRU
-  if winnr('$') == 1 && bufname('%') == g:MRU_buffer_name
+  if winnr('$') == 1 && @% == g:MRU_buffer_name
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')
@@ -954,10 +954,10 @@ func Test_34()
   let g:MRU_Use_Current_Window=1
   let w:marker=1
   MRU
-  if winnr('$') == 1 && w:marker && bufname('%') == g:MRU_buffer_name
+  if winnr('$') == 1 && w:marker && @% == g:MRU_buffer_name
     call search('file2.txt')
     exe "normal \<Enter>"
-    if winnr('$') == 1 && w:marker && bufname('%') == 'file2.txt'
+    if winnr('$') == 1 && w:marker && @% == 'file2.txt'
       call LogResult(test_name, 'pass')
     else
       call LogResult(test_name, 'FAIL')
@@ -1086,6 +1086,31 @@ func Test_37()
   else
     call LogResult(test_name, 'FAIL')
   endif
+endfunc
+
+" ==========================================================================
+" Test38
+" If the current tabpage is empty, then pressing 't' in the MRU window
+" should open the file in the current tabpage.
+" ==========================================================================
+func Test_38()
+  let test_name = 'test38'
+  enew | only | tabonly
+  tabnew
+  tabnew
+  tabnext 2
+  MRU
+  call search('file2.txt')
+  normal t
+  if fnamemodify(@%, ':p:t') ==# 'file2.txt' && tabpagenr() == 2
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+    call LogResult(test_name, "file = " . fnamemodify(@%, ':p:t'))
+    call LogResult(test_name, "tab page = " . tabpagenr())
+  endif
+
+  tabonly
 endfunc
 
 " ==========================================================================

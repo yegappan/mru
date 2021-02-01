@@ -2,7 +2,7 @@
 
 REM Script to run the unit-tests for the MRU Vim plugin on MS-Windows
 
-SETLOCAL 
+SETLOCAL
 SET VIM="C:\Program Files (x86)\vim\vim82\vim.exe"
 SET VIM_CMD=%VIM% -N -u NONE -U NONE -i NONE
 
