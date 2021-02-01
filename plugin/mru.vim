@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.9.3
-" Last Modified: Jan 30, 2021
+" Version: 3.10
+" Last Modified: Feb 1, 2021
 " Copyright: Copyright (C) 2003-2021 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -322,7 +322,11 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
 	    exe 'e ' . a:esc_fname
 	  else
 	    " Open a new tab as the last tab page
-	    exe '$tabnew ' . a:esc_fname
+	    if v:version >= 800
+	      exe '$tabnew ' . a:esc_fname
+	    else
+	      exe '99999tabnew ' . a:esc_fname
+	    endif
 	  endif
 	endif
     endif

@@ -1180,6 +1180,10 @@ endfunc
 " Using a command modifier with the MRU command to open the MRU window
 " ==========================================================================
 func Test_42()
+  if v:version < 800
+    " The <mods> command modifier is supported only by Vim 8.0 and above
+    return
+  endif
   let test_name = 'test42'
   enew | only
   topleft MRU
@@ -1301,6 +1305,7 @@ let s:tests = split(substitute(@q, '\(function\) \(\k*()\)', '\2', 'g'))
 
 " Run the tests
 set nomore
+set debug=beep
 for one_test in sort(s:tests)
   exe 'call ' . one_test
 endfor

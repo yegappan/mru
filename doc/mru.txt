@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: Jan 30, 2021
+Last change: Feb 1, 2021
 
 ==============================================================================
 						*mru-license*
