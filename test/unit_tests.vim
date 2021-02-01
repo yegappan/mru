@@ -1284,6 +1284,57 @@ func Test_45()
 endfunc
 
 " ==========================================================================
+" Test46
+" Specify a count to the :MRU command to set the MRU window height/width
+" ==========================================================================
+func Test_46()
+  let test_name = 'test46'
+  only
+  " default height is 8
+  MRU
+  if winnr() != 2 || winheight(0) != 8
+    call LogResult(test_name, 'FAIL (1)')
+    return
+  endif
+  close
+
+  " use a specific height value
+  15MRU
+  if winnr() != 2 || winheight(0) != 15
+    call LogResult(test_name, 'FAIL (2)')
+    return
+  endif
+  close
+
+  if v:version >= 800
+    " use a specific height value with a command modifier
+    topleft 12MRU
+    if winnr() != 1 || winheight(0) != 12
+      call LogResult(test_name, 'FAIL (3)')
+      return
+    endif
+    close
+
+    " check for the width (leftmost window)
+    vertical topleft 20MRU
+    if winnr() != 1 || winwidth(0) != 20
+      call LogResult(test_name, 'FAIL (4)')
+      return
+    endif
+    close
+
+    " check for the width (rightmost window)
+    vertical botright 25MRU
+    if winnr() != 2 || winwidth(0) != 25
+      call LogResult(test_name, 'FAIL (5)')
+      return
+    endif
+    close
+  endif
+
+  call LogResult(test_name, 'pass')
+endfunc
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')

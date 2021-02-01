@@ -132,18 +132,22 @@ window from the MRU list.
 You can close the MRU window by pressing the 'q' key or the <Esc> key or
 using one of the Vim window commands.
 
-By default, the MRU window is opened as the bottom-most window. You can use
-command modifiers like |:topleft| or |:botright| with the :MRU command to
-control where the window is opened. Example: >
+By default, the MRU window is opened as the bottom-most window. If you are
+using Vim version 8.0 and above, then you can use command modifiers like
+|:topleft| or |:botright| or |:vertical| with the :MRU command to control
+where the window is opened. Example: >
 
-	:topleft MRU
-
+	:topleft MRU			" horizontally split topmost window
+	:botright MRU			" horizontally split bottommost window
+	:vertical topleft MRU		" vertically split far-left window
+	:vertical botright MRU		" vertically split far-right window
 <
 By default, the height of the MRU window is 8 or the value specified by the
 g:MRU_Window_Height variable. You can pass a count to the :MRU command to use
 a different height. Example: >
 
 	:15MRU
+	:vertical topleft 20MRU
 <
 To display only files matching a pattern from the MRU list in the MRU window,
 you can specify a pattern to the |:MRU| command. Example: >
