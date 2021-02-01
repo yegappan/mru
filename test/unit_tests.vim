@@ -1114,6 +1114,25 @@ func Test_38()
 endfunc
 
 " ==========================================================================
+" Test39
+" Pressing 'd' in the MRU window should delete the file under the cursor
+" from the MRU list
+" ==========================================================================
+func Test39()
+  edit file2.txt
+  MRU
+  call search('file2.txt')
+  normal d
+  close
+  let l = readfile(g:MRU_File)
+  if match(l, 'file2.txt') == -1
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')

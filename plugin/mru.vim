@@ -313,18 +313,18 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
 	endwhile
 
 	if tabnum != -1
-	    " Goto the tab containing the file
-	    exe 'tabnext ' . i
+	  " Goto the tab containing the file
+	  exe 'tabnext ' . i
 	else
-        if (winnr("$") == 1) && (bufname("") == "") && !&modified
+	  if (winnr("$") == 1) && (@% == '') && !&modified
 	    " Reuse the current tab if it contains a single new unmodified
 	    " file.
-            exe 'e ' . a:esc_fname
-        else
-            " Open a new tab as the last tab page
-            tablast
-            exe 'tabnew ' . a:esc_fname
-        endif
+	    exe 'e ' . a:esc_fname
+	  else
+	    " Open a new tab as the last tab page
+	    tablast
+	    exe 'tabnew ' . a:esc_fname
+	  endif
 	endif
     endif
 
