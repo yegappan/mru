@@ -234,7 +234,7 @@ func! s:MRU_AddFile(acmd_bufnr) abort
     let winnum = bufwinnr(bname)
     if winnum != -1
         let cur_winnr = winnr()
-        call s:MRU_Open_Window('', '')
+        call s:MRU_Open_Window('', '', 0)
         if winnr() != cur_winnr
             exe cur_winnr . 'wincmd w'
         endif
@@ -490,7 +490,7 @@ endfunc
 " to selectively display in the MRU window.
 " The 'splitdir' argument specifies the location (topleft, belowright, etc.)
 " of the MRU window.
-func! s:MRU_Open_Window(pat, splitdir) abort
+func! s:MRU_Open_Window(pat, splitdir, winsz) abort
 
     " Load the latest MRU file list
     call s:MRU_LoadList()
@@ -564,7 +564,11 @@ func! s:MRU_Open_Window(pat, splitdir) abort
 	    else
 	      let cmd .= a:splitdir . ' '
 	    endif
-	    let cmd .= g:MRU_Window_Height . 'split '
+	    let sz = a:winsz
+	    if sz == 0
+	      let sz = g:MRU_Window_Height
+	    endif
+	    let cmd .= sz . 'split '
 
             " If the __MRU_Files__ buffer exists, then reuse it. Otherwise open
             " a new buffer
@@ -687,10 +691,10 @@ endfunc
 " MRU_Cmd                               {{{1
 " Function to handle the MRU command
 "   pat - File name pattern passed to the MRU command
-func! s:MRU_Cmd(pat, splitdir) abort
+func! s:MRU_Cmd(pat, splitdir, winsz) abort
     if a:pat == ''
         " No arguments specified. Open the MRU window
-        call s:MRU_Open_Window('', a:splitdir)
+        call s:MRU_Open_Window('', a:splitdir, a:winsz)
         return
     endif
 
@@ -722,7 +726,7 @@ func! s:MRU_Cmd(pat, splitdir) abort
 
 	" Couldn't find an exact match, open the MRU window with all the
         " files matching the pattern.
-	call s:MRU_Open_Window(a:pat, a:splitdir)
+	call s:MRU_Open_Window(a:pat, a:splitdir, a:winsz)
 	return
     endif
 
@@ -749,7 +753,7 @@ func! s:MRU_Cmd(pat, splitdir) abort
         return
     endif
 
-    call s:MRU_Open_Window(a:pat, a:splitdir)
+    call s:MRU_Open_Window(a:pat, a:splitdir, a:winsz)
 endfunc
 
 " MRU_add_files_to_menu                 {{{1
@@ -884,15 +888,15 @@ autocmd QuickFixCmdPost *vimgrep* let s:mru_list_locked = 0
 
 " Command to open the MRU window
 if v:version >= 800
-  command! -nargs=? -complete=customlist,s:MRU_Complete MRU
-              \ call s:MRU_Cmd(<q-args>, <q-mods>)
-  command! -nargs=? -complete=customlist,s:MRU_Complete Mru
-              \ call s:MRU_Cmd(<q-args>, <q-mods>)
+  command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 MRU
+              \ call s:MRU_Cmd(<q-args>, <q-mods>, <count>)
+  command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 Mru
+              \ call s:MRU_Cmd(<q-args>, <q-mods>, <count>)
 else
-  command! -nargs=? -complete=customlist,s:MRU_Complete MRU
-              \ call s:MRU_Cmd(<q-args>, '')
-  command! -nargs=? -complete=customlist,s:MRU_Complete Mru
-              \ call s:MRU_Cmd(<q-args>, '')
+  command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 MRU
+              \ call s:MRU_Cmd(<q-args>, '', <count>)
+  command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 Mru
+              \ call s:MRU_Cmd(<q-args>, '', <count>)
 endif
 
 " FZF (fuzzy finder) integration

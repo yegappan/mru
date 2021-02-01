@@ -134,13 +134,25 @@ using one of the Vim window commands.
 
 By default, the MRU window is opened as the bottom-most window. You can use
 command modifiers like |:topleft| or |:botright| with the :MRU command to
-control where the window is opened.
+control where the window is opened. Example: >
 
-To display only files matching a pattern from the MRU list in the MRU
-window, you can specify a pattern to the |:MRU| command. For example, to
-display only file names matching "vim" in them, you can use the following
-command ":MRU vim".  When you specify a partial file name and only one
-matching filename is found, then the |:MRU| command will edit that file.
+	:topleft MRU
+
+<
+By default, the height of the MRU window is 8 or the value specified by the
+g:MRU_Window_Height variable. You can pass a count to the :MRU command to use
+a different height. Example: >
+
+	:15MRU
+<
+To display only files matching a pattern from the MRU list in the MRU window,
+you can specify a pattern to the |:MRU| command. Example: >
+
+	:MRU mystr
+<
+The above command displays only the file names containing the string "mystr"
+in them.  When you specify a partial file name and only one matching filename
+is found, then the |:MRU| command will edit that file.
 
 The |:MRU| command supports command-line completion of file names from
 the MRU list. You can enter a partial file name and then press <Tab>
@@ -218,7 +230,8 @@ filenames are added to the MRU list. Note that you can specify multiple
 patterns using '\|'.
 
 The default height of the MRU window is 8. You can set the MRU_Window_Height
-variable to change the window height.
+variable to change the window height. You can also set the height of the MRU
+window by passing a count to the :MRU command.
 >
       let MRU_Window_Height = 15
 <
