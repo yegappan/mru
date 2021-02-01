@@ -231,7 +231,7 @@ endfunc
 
 " ==========================================================================
 " Test9
-" Use 'O' in the MRU window to open a file in a veritcally split window
+" Use 'O' in the MRU window to open a file in a vertically split window
 " ==========================================================================
 func Test_09()
   let test_name = 'test9'
@@ -738,7 +738,7 @@ endfunc
 " ==========================================================================
 " Test26
 " When trying to complete filenames for the MRU command without specifying
-" any text should return the the entire MRU list.
+" any text should return the entire MRU list.
 " ==========================================================================
 func Test_26()
   let test_name = 'test26'
@@ -1203,6 +1203,80 @@ func Test_42()
     call LogResult(test_name, 'FAIL')
   endif
   enew | only
+endfunc
+
+" ==========================================================================
+" Test43
+" Opening a file using the MRU command should jump to the window containing
+" the file (if it is already opened).
+" ==========================================================================
+func Test_43()
+  let test_name = 'test43'
+  only
+  edit file3.txt
+  below split file2.txt
+  below split file1.txt
+  wincmd t
+  MRU file1.txt
+  if winnr() != 3 || fnamemodify(@%, ':p:t') !=# 'file1.txt'
+    call LogResult(test_name, 'FAIL (1)')
+  else
+    MRU file2.txt
+    if winnr() != 2 && fnamemodify(@%, ':p:t') !=# 'file2.txt'
+      call LogResult(test_name, 'FAIL (2)')
+    else
+      MRU file3.txt
+      if winnr() != 1 && fnamemodify(@%, ':p:t') !=# 'file3.txt'
+        call LogResult(test_name, 'FAIL (3)')
+      else
+        call LogResult(test_name, 'pass')
+      endif
+    endif
+  endif
+  enew | only
+endfunc
+
+" ==========================================================================
+" Test44
+" Opening a file using the MRU command should open the file in a new window if
+" the current buffer has unsaved changes.
+" ==========================================================================
+func Test_44()
+  let test_name = 'test44'
+  only
+  set modified
+  MRU file2.txt
+  if winnr('$') == 2 && winnr() == 1 &&
+        \ fnamemodify(@%, ':p:t') ==# 'file2.txt'
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  close
+  set nomodified
+endfunc
+
+" ==========================================================================
+" Test45
+" Opening a file from the MRU window using 'v' should open the file in a new
+" window if the current buffer has unsaved changes.
+" ==========================================================================
+func Test_45()
+  let test_name = 'test45'
+  only
+  set modified
+  MRU
+  call search('file3.txt')
+  normal v
+  if winnr('$') == 2 && winnr() == 1
+        \ && fnamemodify(@%, ':p:t') ==# 'file3.txt'
+        \ && &readonly
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  close
+  set nomodified
 endfunc
 
 " ==========================================================================
