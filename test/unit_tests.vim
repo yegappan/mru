@@ -285,9 +285,10 @@ func Test_11()
   let test_name = 'test11'
   enew | only
 
-  tabnew
-  tabnew
-  tabnew
+  edit a1.txt
+  tabnew a2.txt
+  tabnew a3.txt
+  tabnew a4.txt
   tabfirst
   MRU
   call search('file3.txt')

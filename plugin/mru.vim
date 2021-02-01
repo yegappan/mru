@@ -317,6 +317,8 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
 	    exe 'tabnext ' . i
 	else
         if (winnr("$") == 1) && (bufname("") == "") && !&modified
+	    " Reuse the current tab if it contains a single new unmodified
+	    " file.
             exe 'e ' . a:esc_fname
         else
             " Open a new tab as the last tab page
@@ -640,10 +642,10 @@ func! s:MRU_Open_Window(pat, splitdir) abort
     else
         " Display only the entries matching the specified pattern
 	" First try using it as a literal pattern
-	let m = filter(copy(s:MRU_files), 'stridx(v:val, pat) != -1')
+	let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
 	if len(m) == 0
 	    " No match. Try using it as a regular expression
-	    let m = filter(copy(s:MRU_files), 'v:val =~# pat')
+	    let m = filter(copy(s:MRU_files), 'v:val =~# a:pat')
 	endif
     endif
 
