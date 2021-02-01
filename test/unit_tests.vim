@@ -971,11 +971,34 @@ endfunc
 
 " ==========================================================================
 " Test35
-" When MRU_Auto_Close is not set, the MRU window should not automatically
-" close when a file is selected. The MRU window should be kept open.
+" When MRU_Use_Current_Window is set, if the current buffer has unsaved
+" changes, then the MRU window should be opened in a split window
 " ==========================================================================
 func Test_35()
   let test_name = 'test35'
+  enew | only
+
+  let g:MRU_Use_Current_Window=1
+  set modified
+  MRU
+  if winnr('$') == 2 && winnr() == 2 && @% == g:MRU_buffer_name
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  close
+  set nomodified
+  let g:MRU_Use_Current_Window=0
+  enew | only
+endfunc
+
+" ==========================================================================
+" Test36
+" When MRU_Auto_Close is not set, the MRU window should not automatically
+" close when a file is selected. The MRU window should be kept open.
+" ==========================================================================
+func Test_36()
+  let test_name = 'test36'
   enew | only
 
   let g:MRU_Auto_Close=0
@@ -1003,13 +1026,13 @@ func Test_35()
 endfunc
 
 " ==========================================================================
-" Test36
+" Test37
 " When MRU_Open_File_Use_Tabs is set, a selected file should be opened in a
 " tab. If the file is already opened in a tab, then the focus should be moved
 " to that tab.
 " ==========================================================================
-func Test_36()
-  let test_name = 'test36'
+func Test_37()
+  let test_name = 'test37'
   enew | only
 
   let g:MRU_Open_File_Use_Tabs=1
@@ -1043,14 +1066,14 @@ func Test_36()
 endfunc
 
 " ==========================================================================
-" Test37
+" Test38
 " If the MRU_Window_Open_Always is set to 0, when the MRU command finds a
 " single matching file name, then it should open the MRU window. If this
 " variable is set to 1, then the file should be opened without opening the MRU
 " window.
 " ==========================================================================
-func Test_37()
-  let test_name = 'test37'
+func Test_38()
+  let test_name = 'test38'
   enew | only
 
   edit file3.txt
@@ -1089,12 +1112,12 @@ func Test_37()
 endfunc
 
 " ==========================================================================
-" Test38
+" Test39
 " If the current tabpage is empty, then pressing 't' in the MRU window
 " should open the file in the current tabpage.
 " ==========================================================================
-func Test_38()
-  let test_name = 'test38'
+func Test_39()
+  let test_name = 'test39'
   enew | only | tabonly
   tabnew
   tabnew
@@ -1114,11 +1137,12 @@ func Test_38()
 endfunc
 
 " ==========================================================================
-" Test39
+" Test40
 " Pressing 'd' in the MRU window should delete the file under the cursor
 " from the MRU list
 " ==========================================================================
-func Test39()
+func Test_40()
+  let test_name = 'test40'
   edit file2.txt
   MRU
   call search('file2.txt')
@@ -1130,6 +1154,55 @@ func Test39()
   else
     call LogResult(test_name, 'FAIL')
   endif
+endfunc
+
+" ==========================================================================
+" Test41
+" Running the :vimgrep command should not add the files to the MRU list
+" ==========================================================================
+func Test_41()
+  let test_name = 'test41'
+  call writefile(['bright'], 'dummy1.txt')
+  call writefile(['bright'], 'dummy2.txt')
+  vimgrep /bright/j dummy*
+  let l = readfile(g:MRU_File)
+  if match(l, 'dummy') == -1
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  call delete('dummy1.txt')
+  call delete('dummy2.txt')
+endfunc
+
+" ==========================================================================
+" Test42
+" Using a command modifier with the MRU command to open the MRU window
+" ==========================================================================
+func Test_42()
+  let test_name = 'test42'
+  enew | only
+  topleft MRU
+  if winnr() == 1 && winnr('$') == 2
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  enew | only
+  botright MRU
+  if winnr() == 2 && winnr('$') == 2
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  enew | only
+  botright MRU
+  if winnr() == 2 && winnr('$') == 2
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  enew | only
 endfunc
 
 " ==========================================================================
@@ -1153,17 +1226,17 @@ redir END
 let s:tests = split(substitute(@q, '\(function\) \(\k*()\)', '\2', 'g'))
 
 " Run the tests
+set nomore
 for one_test in sort(s:tests)
   exe 'call ' . one_test
 endfor
+set more
 
 " TODO:
 " 1. When the MRU list is modified, the MRU menu should be refreshed.
-" 2. Lock and Unlock the MRU list.
-" 3. Try to jump to an already open file from the MRU window and using the
+" 2. Try to jump to an already open file from the MRU window and using the
 "     MRU command.
-" 4. Open an existing file but not present in the MRU list using the MRU command
-" 5. Split open a file in readonly mode.
+" 3. Open an existing file but not present in the MRU list using the MRU command
 
 " Cleanup the files used by the tests
 call delete('file1.txt')

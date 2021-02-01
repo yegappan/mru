@@ -322,8 +322,7 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
 	    exe 'e ' . a:esc_fname
 	  else
 	    " Open a new tab as the last tab page
-	    tablast
-	    exe 'tabnew ' . a:esc_fname
+	    exe '$tabnew ' . a:esc_fname
 	  endif
 	endif
     endif
@@ -535,13 +534,13 @@ func! s:MRU_Open_Window(pat, splitdir) abort
             let bufnum = bufnr(bname)
             if bufnum == -1
                 if split_window
-                    let cmd = 'split edit ' . bname
+                    let cmd = 'botright split edit ' . bname
                 else
                     let cmd = 'edit ' . bname
                 endif
             else
                 if split_window
-                    let cmd = 'sbuffer ' . bufnum
+                    let cmd = 'botright sbuffer ' . bufnum
                 else
                     let cmd = 'buffer ' . bufnum
                 endif
