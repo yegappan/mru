@@ -553,18 +553,24 @@ func! s:MRU_Open_Window(pat, splitdir) abort
             endif
         else
             " Open a new window at the bottom
+	    let cmd = 'silent! '
+	    if a:splitdir == ''
+	      let cmd .= 'botright '
+	    else
+	      let cmd .= a:splitdir . ' '
+	    endif
+	    let cmd .= g:MRU_Window_Height . 'split '
 
             " If the __MRU_Files__ buffer exists, then reuse it. Otherwise open
             " a new buffer
             let bufnum = bufnr(bname)
             if bufnum == -1
-                let wcmd = bname
+                let cmd .= bname
             else
-                let wcmd = '+buffer' . bufnum
+                let cmd .= '+buffer' . bufnum
             endif
 
-            exe 'silent! ' . a:splitdir == '' ? 'botright' : a:splitdir . ' '
-				    \ . g:MRU_Window_Height . 'split ' . wcmd
+            exe cmd
         endif
     endif
 
