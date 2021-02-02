@@ -675,6 +675,7 @@ func Test_23()
   let test_name = 'test23'
   enew | only
 
+  let g:MRU_FuzzyMatch = 0
   edit file1.txt
   edit file2.txt
   edit file3.txt
@@ -701,6 +702,7 @@ endfunc
 func Test_24()
   let test_name = 'test24'
 
+  let g:MRU_FuzzyMatch = 0
   redir => msg
   MRU nonexistingfile.txt
   redir END

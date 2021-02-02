@@ -91,8 +91,9 @@ using the following steps (in Vim 8.0 and above): >
     $ git clone https://github.com/yegappan/mru
 <
 ==============================================================================
-3. Usage					*mru-usage* *:MRU*
+3. Usage					*mru-usage*
 
+						*:MRU*
 To list and edit files from the Most Recently Used (MRU) list, you can use the
 ":MRU" command.  The |:MRU| command displays the list of recently used files
 in a temporary Vim window.  If the MRU window is already opened, then the MRU
@@ -104,6 +105,18 @@ from this sub-menu to edit the file.
 
 You can use the normal Vim commands to move around in the MRU window. You
 cannot make changes in the MRU window.
+
+In the MRU window, the following keys can be used:
+
+    <Enter>	- open the file under cursor
+    o		- open the file under cursor in a new window
+    <S-Enter>	- idem
+    v		- open the file in read-only mode
+    t		- open the file in a tab page
+    u		- update (refresh) the MRU list
+    d		- delete the file name under cursor from the MRU list
+    q		- close the MRU window
+    <Esc>	- idem
 
 You can select a file name to edit by pressing the <Enter> key or by double
 clicking the left mouse button on a file name.  The selected file will be
@@ -129,8 +142,8 @@ linewise visual mode) select multiple filenames and invoke the commands to
 open the files. Each selected file will be opened in a separate window or
 tab.
 
-You can press the 'u' key in the MRU window to update the file list. This is
-useful if you keep the MRU window open always.
+You can press the 'u' key in the MRU window to update/refresh the file list.
+This is useful if you keep the MRU window open always.
 
 You can press the 'd' key to remove the entry under the cursor in the MRU
 window from the MRU list.
@@ -143,22 +156,22 @@ using Vim version 8.0 and above, then you can use command modifiers like
 |:topleft| or |:botright| or |:vertical| with the :MRU command to control
 where the window is opened. Example: >
 
-	:topleft MRU			" horizontally split topmost window
-	:botright MRU			" horizontally split bottommost window
-	:vertical topleft MRU		" vertically split far-left window
-	:vertical botright MRU		" vertically split far-right window
+    :topleft MRU			" horizontally split topmost window
+    :botright MRU			" horizontally split bottommost window
+    :vertical topleft MRU		" vertically split far-left window
+    :vertical botright MRU		" vertically split far-right window
 <
 By default, the height of the MRU window is 8 or the value specified by the
 g:MRU_Window_Height variable. You can pass a count to the :MRU command to use
 a different height. Example: >
 
-	:15MRU
-	:vertical topleft 20MRU
+    :15MRU
+    :vertical topleft 20MRU
 <
 To display only files matching a pattern from the MRU list in the MRU window,
 you can specify a pattern to the |:MRU| command. Example: >
 
-	:MRU mystr
+    :MRU mystr
 <
 The above command displays only the file names containing the string "mystr"
 in them.  When you specify a partial file name and only one matching filename
@@ -194,25 +207,46 @@ custom auto commands, syntax highlighting, etc.
 ==============================================================================
 4. Configuration				*mru-configuration*
 
-By changing the following variables you can configure the behavior of this
-plugin. Set the following variables in your .vimrc file using the 'let'
-command.
+The MRU plugin supports many configurable features. These can be enabled or
+disabled by setting one or more variables in your .vimrc file using the |:let|
+command. A summary of these variables is below:
 
+  |MRU_File|			name of the file containing the MRU list
+  |MRU_Max_Entries|		size of the MRU list
+  |MRU_Exclude_Files|		pattern to exclude files from MRU list
+  |MRU_Include_Files|		pattern to include files in the MRU list
+  |MRU_Window_Height|		height of the MRU window
+  |MRU_Use_Current_Window|	use current window to display MRU list
+  |MRU_Auto_Close|		close the MRU window when a file is selected
+  |MRU_Window_Open_Always|	open the MRU window even for a single file
+  |MRU_Open_File_Use_Tabs|	open files in separate tab pages
+  |MRU_FuzzyMatch|		use fuzzy match for filtering file names
+  |MRU_Add_Menu|		add MRU files to the "Recent Files" menu
+  |MRU_Max_Menu_Entries|	maximum number of entries in the MRU menu
+  |MRU_Max_Submenu_Entries|	maximum number of entries in the MRU submenu
+  |MRU_Filename_Format|		patterns to populate and parse file names in
+				the MRU window
+
+These variables are described in more detail below.
+
+						*MRU_File*
 The list of recently edited file names is stored in the file specified by the
 MRU_File variable.  The default setting for this variable is
 $HOME/.vim_mru_files for Unix-like systems and $USERPROFILE/_vim_mru_files
 for MS-Windows systems. You can change this variable to point to a file by
 adding the following line to the .vimrc file:
 >
-      let MRU_File = 'd:\myhome\_vim_mru_files'
+	let MRU_File = 'd:\myhome\_vim_mru_files'
 <
+						*MRU_Max_Entries*
 By default, the plugin will remember the names of the last 100 used files.
 As you edit more files, old file names will be removed from the MRU list.
 You can set the 'MRU_Max_Entries' variable to remember more file names. For
 example, to remember 1000 most recently used file names, you can use
 >
-      let MRU_Max_Entries = 1000
+	let MRU_Max_Entries = 1000
 <
+						*MRU_Exclude_Files*
 By default, all the edited file names are added to the MRU list. If you want
 to exclude file names matching a pattern, then you can set the
 MRU_Exclude_Files variable to a Vim regular expression. If any part of a
@@ -221,74 +255,68 @@ list. By default, this variable is set to an empty string. For example, to
 not include files in the temporary (/tmp, /var/tmp and D:\temp) directories,
 you can set the MRU_Exclude_Files variable to
 >
-      let MRU_Exclude_Files = '^/tmp/.*\|^/var/tmp/.*'  " For Unix
-      let MRU_Exclude_Files = '^D:\\temp\\.*'           " For MS-Windows
+	let MRU_Exclude_Files = '^/tmp/.*\|^/var/tmp/.*'  " For Unix
+	let MRU_Exclude_Files = '^D:\\temp\\.*'           " For MS-Windows
 <
 The specified pattern should be a Vim regular expression pattern. Note that
 you can specify multiple patterns using '\|'.
 
+						*MRU_Include_Files*
 If you want to add only file names matching a pattern to the MRU list, then
 you can set the MRU_Include_Files variable. This variable should be set to a
 Vim regular expression pattern. If the regular expression matches any part
 of a file name, then it is added to the MRU list.  For example, to add only
 .c and .h files to the MRU list, you can set this variable as below:
 >
-      let MRU_Include_Files = '\.c$\|\.h$'
+	let MRU_Include_Files = '\.c$\|\.h$'
 <
 By default, MRU_Include_Files is set to an empty string and all the edited
 filenames are added to the MRU list. Note that you can specify multiple
 patterns using '\|'.
 
+						*MRU_Window_Height*
 The default height of the MRU window is 8. You can set the MRU_Window_Height
 variable to change the window height. You can also set the height of the MRU
 window by passing a count to the :MRU command.
 >
-      let MRU_Window_Height = 15
+	let MRU_Window_Height = 15
 <
+						*MRU_Use_Current_Window*
 By default, when the |:MRU| command is invoked, the MRU list will be displayed
 in a new window. Instead, if you want the MRU plugin to reuse the current
 window, then you can set the 'MRU_Use_Current_Window' variable to one.
 >
-      let MRU_Use_Current_Window = 1
+	let MRU_Use_Current_Window = 1
 <
 The MRU plugin will reuse the current window. When a file name is selected,
 the file is also opened in the current window.
 
+						*MRU_Auto_Close*
 When you select a file from the MRU window, the MRU window will be
 automatically closed and the selected file will be opened in the previous
 window. You can set the 'MRU_Auto_Close' variable to zero to keep the MRU
 window open.
 >
-      let MRU_Auto_Close = 0
+	let MRU_Auto_Close = 0
 <
+						*MRU_Window_Open_Always*
+When a search pattern is supplied to the :MRU command, the MRU window is
+opened if multiple files matching the pattern are found in the MRU list.  If
+only one matching file is found, instead of opening the MRU window the file is
+directly opened. To force open the MRU window always, you can set the
+MRU_Window_Open_Always variable to 1. By default this variable is set to 0.
+>
+	let MRU_Window_Open_Always = 1
+<
+						*MRU_Open_File_Use_Tabs*
 When opening a file from the MRU list, the file is opened in the current
 tab. If the selected file has to be opened in a tab always, then set the
 following variable to 1. If the file is already opened in a tab, then the
 cursor will be moved to that tab.
 >
-      let MRU_Open_File_Use_Tabs = 1
+	let MRU_Open_File_Use_Tabs = 1
 <
-If you don't use the "File->Recent Files" menu and want to disable it,
-then you can set the 'MRU_Add_Menu' variable to zero. By default, the
-menu is enabled.
->
-      let MRU_Add_Menu = 0
-<
-If too many file names are present in the MRU list, then updating the MRU
-menu to list all the file names makes Vim slow. To avoid this, the
-MRU_Max_Menu_Entries variable controls the number of file names to show in
-the MRU menu. By default, this is set to 10. You can change this to show
-more entries in the menu.
->
-      let MRU_Max_Menu_Entries = 20
-<
-If many file names are present in the MRU list, then the MRU menu is split
-into sub-menus. Each sub-menu contains MRU_Max_Submenu_Entries file names.
-The default setting for this is 10. You can change this to increase the
-number of file names displayed in a single sub-menu:
->
-      let MRU_Max_Submenu_Entries = 15
-<
+						*MRU_FuzzyMatch*
 The :MRU command accepts a string that is used to filter the file names
 displayed in the MRU window. The MRU command also supports command-line
 completion using the supplied string. If Vim supports fuzzy matching
@@ -297,8 +325,33 @@ supplied string against the file names.  Otherwise it will use regular
 expression matching. To always use regular expression matching, you can set
 the MRU_FuzzyMatch variable to 0:
 >
-      let MRU_FuzzyMatch = 0
+	let MRU_FuzzyMatch = 0
 <
+						*MRU_Add_Menu*
+If you don't use the "File->Recent Files" menu and want to disable it,
+then you can set the 'MRU_Add_Menu' variable to zero. By default, the
+menu is enabled.
+>
+	let MRU_Add_Menu = 0
+<
+						*MRU_Max_Menu_Entries*
+If too many file names are present in the MRU list, then updating the MRU
+menu to list all the file names makes Vim slow. To avoid this, the
+MRU_Max_Menu_Entries variable controls the number of file names to show in
+the MRU menu. By default, this is set to 10. You can change this to show
+more entries in the menu.
+>
+	let MRU_Max_Menu_Entries = 20
+<
+						*MRU_Max_Submenu_Entries*
+If many file names are present in the MRU list, then the MRU menu is split
+into sub-menus. Each sub-menu contains MRU_Max_Submenu_Entries file names.
+The default setting for this is 10. You can change this to increase the
+number of file names displayed in a single sub-menu:
+>
+	let MRU_Max_Submenu_Entries = 15
+<
+						*MRU_Filename_Format*
 In the MRU window, the filenames are displayed in two parts. The first part
 contains the file name without the path and the second part contains the
 full path to the file in parenthesis. This format is controlled by the
@@ -317,7 +370,7 @@ The MRU_Filename_Format variable contains a |Dict| with the following keys:
 For example, to display the full path of the files without splitting it, you
 can set this variable as shown below:
 >
-      let MRU_Filename_Format = {
+	let MRU_Filename_Format = {
 		\ 'formatter':'v:val',
 		\ 'parser':'.*',
 		\ 'syntax': '[^/\\]\+$'}
