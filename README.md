@@ -23,4 +23,4 @@ Vim 8.0 and above):
 or you can use any one of the Vim plugin managers (dein.vim, pathogen, vam, vim-plug, volt, Vundle, etc.) to install and manage this plugin.
 
 The user manual is available at:
-http://github.com/yegappan/mru/wiki/User-Manual
+https://github.com/yegappan/mru/wiki/User-Manual

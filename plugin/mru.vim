@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.10
-" Last Modified: Feb 1, 2021
+" Last Modified: Feb 2, 2021
 " Copyright: Copyright (C) 2003-2021 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -104,6 +104,15 @@ endif
 " cursor will be moved to that tab.
 if !exists('MRU_Open_File_Use_Tabs')
     let MRU_Open_File_Use_Tabs = 0
+endif
+
+" Controls whether fuzzy matching is used for matching a user supplied pattern
+" against the file names in the MRU list.
+if !exists('MRU_FuzzyMatch')
+    if exists('*matchfuzzy')
+      " Fuzzy matching is supported only when matchfuzzy() function is present
+      let MRU_FuzzyMatch = 1
+    endif
 endif
 
 " Format of the file names displayed in the MRU window.
@@ -647,9 +656,13 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
         " No search pattern specified. Display the complete list
         let m = copy(s:MRU_files)
     else
-        " Display only the entries matching the specified pattern
-	" First try using it as a literal pattern
-	let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
+	" Display only the entries matching the specified pattern. First try
+	" fuzzy matching or as a literal pattern.
+	if g:MRU_FuzzyMatch
+	  let m = matchfuzzy(s:MRU_files, a:pat)
+	else
+	  let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
+	endif
 	if len(m) == 0
 	    " No match. Try using it as a regular expression
 	    let m = filter(copy(s:MRU_files), 'v:val =~# a:pat')
@@ -683,8 +696,13 @@ func! s:MRU_Complete(ArgLead, CmdLine, CursorPos) abort
         " Return the complete list of MRU files
         return s:MRU_files
     else
-        " Return only the files matching the specified pattern
-        return filter(copy(s:MRU_files), 'v:val =~? a:ArgLead')
+	if g:MRU_FuzzyMatch
+	  " Return only the files fuzzy matching the specified pattern
+	  return matchfuzzy(s:MRU_files, a:ArgLead)
+	else
+	  " Return only the files matching the specified pattern
+	  return filter(copy(s:MRU_files), 'v:val =~? a:ArgLead')
+	endif
     endif
 endfunc
 
@@ -707,17 +725,23 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
         return
     endif
 
-    " First use the specified string as a literal string and search for
-    " filenames containing the string. If only one filename is found,
-    " then edit it (unless the user wants to open the MRU window always)
-    let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
+    " If Vim supports fuzzy matching, then try fuzzy matching the pattern
+    " against the file names. Otherwise, use the specified string as a literal
+    " string and search for filenames containing the string. If only one
+    " filename is found, then edit it (unless the user wants to open the MRU
+    " window always)
+    if g:MRU_FuzzyMatch
+      let m = matchfuzzy(s:MRU_files, a:pat)
+    else
+      let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
+    endif
     if len(m) > 0
 	if len(m) == 1 && !g:MRU_Window_Open_Always
 	    call s:MRU_Edit_File(m[0], 0)
 	    return
 	endif
 
-	" More than one file matches. Try find an accurate match
+	" More than one file matches. Try to find an accurate match
 	let new_m = filter(m, 'v:val ==# a:pat')
 	if len(new_m) == 1 && !g:MRU_Window_Open_Always
 	    call s:MRU_Edit_File(new_m[0], 0)
