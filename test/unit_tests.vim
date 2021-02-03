@@ -222,7 +222,7 @@ func Test_08()
   call search('file1.txt')
   exe "normal \<Enter>"
   let r3 = &readonly
-  if r1 == 1 && r2 == 0 && r3 == 0
+  if r1 == 1 && r2 == 0 && r3 == 1
     call LogResult(test_name, 'pass')
   else
     call LogResult(test_name, 'FAIL')

@@ -269,6 +269,7 @@ endfunc
 "   filename - Name of the file to edit
 "   sanitized - Specifies whether the filename is already escaped for special
 "   characters or not.
+" Used by the :MRU command and the "Recent Files" menu item
 func! s:MRU_Edit_File(filename, sanitized) abort
     if !a:sanitized
 	let esc_fname = s:MRU_escape_filename(a:filename)
@@ -295,10 +296,18 @@ func! s:MRU_Edit_File(filename, sanitized) abort
             " Current buffer has unsaved changes or is a special buffer or is
             " the preview window.  The 'hidden' option is also not set.
             " So open the file in a new window.
-            exe 'split ' . esc_fname
+	    if bufexists(esc_fname)
+              exe 'sbuffer ' . esc_fname
+	    else
+              exe 'split ' . esc_fname
+	    endif
         else
             " The current file can be replaced with the selected file.
-            exe 'edit ' . esc_fname
+	    if bufexists(esc_fname)
+              exe 'buffer ' . esc_fname
+	    else
+              exe 'edit ' . esc_fname
+	    endif
         endif
     endif
 endfunc
@@ -330,13 +339,25 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
 	  if (winnr("$") == 1) && (@% == '') && !&modified
 	    " Reuse the current tab if it contains a single new unmodified
 	    " file.
-	    exe 'e ' . a:esc_fname
+	    if bufexists(a:esc_fname)
+	      exe 'buffer ' . a:esc_fname
+	    else
+	      exe 'edit ' . a:esc_fname
+	    endif
 	  else
 	    " Open a new tab as the last tab page
 	    if v:version >= 800
-	      exe '$tabnew ' . a:esc_fname
+	      if bufexists(a:esc_fname)
+	        exe '$tab sbuffer ' . a:esc_fname
+	      else
+	        exe '$tabnew ' . a:esc_fname
+	      endif
 	    else
-	      exe '99999tabnew ' . a:esc_fname
+	      if bufexists(a:esc_fname)
+	        exe '99999tab sbuffer ' . a:esc_fname
+	      else
+	        exe '99999tabnew ' . a:esc_fname
+	      endif
 	    endif
 	  endif
 	endif
@@ -373,12 +394,20 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
         " Edit the file in a new horizontally split window above the previous
         " window
         wincmd p
-        exe 'belowright new ' . esc_fname
+	if bufexists(esc_fname)
+	  exe 'belowright sbuffer ' . esc_fname
+	else
+	  exe 'belowright new ' . esc_fname
+	endif
     elseif a:open_type ==# 'newwin_vert'
         " Edit the file in a new vertically split window above the previous
         " window
         wincmd p
-        exe 'belowright vnew ' . esc_fname
+	if bufexists(esc_fname)
+          exe 'vertical belowright sbuffer ' . esc_fname
+	else
+          exe 'belowright vnew ' . esc_fname
+	endif
     elseif a:open_type ==# 'newtab' || g:MRU_Open_File_Use_Tabs
 	call s:MRU_Open_File_In_Tab(a:fname, esc_fname)
     elseif a:open_type ==# 'preview'
@@ -430,13 +459,21 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
                 " Current buffer has unsaved changes or is a special buffer or
                 " is the preview window.  So open the file in a new window
                 if a:edit_type ==# 'edit'
+		  if bufexists(esc_fname)
+                    exe 'sbuffer ' . esc_fname
+		  else
                     exe 'split ' . esc_fname
+		  endif
                 else
-                    exe 'sview ' . esc_fname
+                  exe 'sview ' . esc_fname
                 endif
             else
                 if a:edit_type ==# 'edit'
+		  if bufexists(esc_fname)
+                    exe 'buffer ' . esc_fname
+		  else
                     exe 'edit ' . esc_fname
+		  endif
                 else
                     exe 'view ' . esc_fname
                 endif
@@ -602,6 +639,11 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
     setlocal noswapfile
     setlocal nowrap
     setlocal nobuflisted
+    setlocal nonumber norelativenumber
+    if v:version >= 800
+      setlocal signcolumn=no
+    endif
+    setlocal foldcolumn=0
     " Set the 'filetype' to 'mru'. This allows the user to apply custom
     " syntax highlighting or other changes to the MRU bufer.
     setlocal filetype=mru

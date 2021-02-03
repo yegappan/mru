@@ -109,10 +109,12 @@ cannot make changes in the MRU window.
 In the MRU window, the following keys can be used:
 
     <Enter>	- open the file under cursor
-    o		- open the file under cursor in a new window
+    o		- open the file under cursor in a horizontally split window
     <S-Enter>	- idem
-    v		- open the file in read-only mode
-    t		- open the file in a tab page
+    O		- open the file under cursor in a vertically split window
+    v		- open the file under cursor in read-only mode
+    t		- open the file under cursor in a tab page
+    p		- open the file under cursor in the preview window
     u		- update (refresh) the MRU list
     d		- delete the file name under cursor from the MRU list
     q		- close the MRU window
