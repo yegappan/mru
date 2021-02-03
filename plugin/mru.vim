@@ -112,6 +112,8 @@ if !exists('MRU_FuzzyMatch')
     if exists('*matchfuzzy')
       " Fuzzy matching is supported only when matchfuzzy() function is present
       let MRU_FuzzyMatch = 1
+    else
+      let MRU_FuzzyMatch = 0
     endif
 endif
 

@@ -1336,6 +1336,74 @@ func Test_46()
 
   call LogResult(test_name, 'pass')
 endfunc
+
+" ==========================================================================
+" Test47
+" The height of the MRU window should be MRU_Window_Height
+" ==========================================================================
+func Test_47()
+  let test_name = 'test47'
+  only
+
+  " default height is 8
+  MRU
+  if winheight(0) != 8
+    call LogResult(test_name, 'FAIL (1)')
+    return
+  endif
+  close
+
+  let g:MRU_Window_Height = 2
+  MRU
+  if winheight(0) != 2
+    call LogResult(test_name, 'FAIL (2)')
+    return
+  endif
+  close
+  let g:MRU_Window_Height = 12
+  MRU
+  if winheight(0) != 12
+    call LogResult(test_name, 'FAIL (3)')
+    return
+  endif
+  close
+
+  call LogResult(test_name, 'pass')
+  let g:MRU_Window_Height = 8
+endfunc
+
+" ==========================================================================
+" Test48
+" Fuzzy search file names with MRU_FuzzyMatch set to 1.
+" ==========================================================================
+func Test_48()
+  if !exists('*matchfuzzy')
+    return
+  endif
+
+  let test_name = 'test48'
+  enew | only
+
+  let g:MRU_FuzzyMatch = 1
+  MRU F1
+  if fnamemodify(@%, ':p:t') ==# 'file1.txt' && winnr('$') == 1
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL (1)')
+  endif
+
+  let g:MRU_FuzzyMatch = 0
+  redir => msg
+  MRU F1
+  redir END
+  if msg =~# "MRU file list doesn't contain files matching F1"
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL (2)')
+  endif
+  let g:MRU_FuzzyMatch = 1
+endfunc
+
 " ==========================================================================
 
 " Create the files used by the tests
@@ -1365,10 +1433,10 @@ endfor
 set more
 
 " TODO:
+" Add the following tests:
 " 1. When the MRU list is modified, the MRU menu should be refreshed.
 " 2. Try to jump to an already open file from the MRU window and using the
 "     MRU command.
-" 3. Open an existing file but not present in the MRU list using the MRU command
 
 " Cleanup the files used by the tests
 call delete('file1.txt')
