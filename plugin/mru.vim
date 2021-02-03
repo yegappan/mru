@@ -637,18 +637,21 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
     setlocal buftype=nofile
     setlocal bufhidden=delete
     setlocal noswapfile
-    setlocal nowrap
     setlocal nobuflisted
-    setlocal nonumber norelativenumber
-    if v:version >= 800
+    setlocal nowrap
+    setlocal nonumber
+    if exists('&relativenumber')
+      setlocal norelativenumber
+    endif
+    if exists('&signcolumn')
       setlocal signcolumn=no
     endif
     setlocal foldcolumn=0
     " Set the 'filetype' to 'mru'. This allows the user to apply custom
     " syntax highlighting or other changes to the MRU bufer.
     setlocal filetype=mru
-    " Use fixed height for the MRU window
-    setlocal winfixheight
+    " Use fixed height and width for the MRU window
+    setlocal winfixheight winfixwidth
 
     " Setup the cpoptions properly for the maps to work
     let old_cpoptions = &cpoptions
