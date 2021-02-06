@@ -1,5 +1,5 @@
 
-Most Recently Used (MRU) Vim plugin
+# Most Recently Used (MRU) Vim plugin
 
 The Most Recently Used (MRU) plugin provides an easy access to a list of 
 recently opened/edited files in Vim. This plugin automatically stores the 
@@ -39,7 +39,23 @@ You can also install this plugin directly from github using the following steps 
     $ git clone https://github.com/yegappan/mru
 ```
 
-or you can use any one of the Vim plugin managers (dein.vim, pathogen, vam, vim-plug, volt, Vundle, etc.) to install and manage this plugin.
+or you can use any one of the Vim plugin managers ([vim-plug](https://github.com/junegunn/vim-plug), [dein.vim](https://github.com/Shougo/dein.vim), [pathogen](https://github.com/tpope/vim-pathogen), [minpac](https://github.com/k-takata/minpac), [vam](https://github.com/MarcWeber/vim-addon-manager), [volt](https://github.com/vim-volt/volt), [Vundle](https://github.com/VundleVim/Vundle.vim), etc.) to install and manage this plugin.
+
+## Usage
+After the plugin is installed, it will automatically start to record all the recently used files in the `$HOME/.vim_mru_files` text file.
+
+To open a file from the recently used file list, enter the following command:
+```
+	:MRU
+```
+
+This will open a temporary window with the MRU list where you can press `<Enter>` to open a file.
+
+You can fuzzy search a text in the list of file names, by passing a search text to the `:MRU` command:
+```
+	:MRU <search_text>
+```
+This will open the MRU window with only the file names fuzzy matching the supplied search string.
 
 The user manual is available at:
 https://github.com/yegappan/mru/wiki/User-Manual
