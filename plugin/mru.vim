@@ -946,10 +946,11 @@ endfunc
 call s:MRU_LoadList()
 
 " MRU autocommands {{{1
-" Autocommands to detect the most recently used files
+" Autocommands to update the most recently used files
 autocmd BufRead * call s:MRU_AddFile(expand('<abuf>'))
 autocmd BufNewFile * call s:MRU_AddFile(expand('<abuf>'))
 autocmd BufWritePost * call s:MRU_AddFile(expand('<abuf>'))
+autocmd BufEnter * call s:MRU_AddFile(expand('<abuf>'))
 
 " The ':vimgrep' command adds all the files searched to the buffer list.
 " This also modifies the MRU list, even though the user didn't edit the
