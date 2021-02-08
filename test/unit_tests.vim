@@ -1146,6 +1146,7 @@ endfunc
 func Test_40()
   let test_name = 'test40'
   edit file2.txt
+  enew
   MRU
   call search('file2.txt')
   normal d
@@ -1402,6 +1403,25 @@ func Test_48()
     call LogResult(test_name, 'FAIL (2)')
   endif
   let g:MRU_FuzzyMatch = 1
+endfunc
+
+" ==========================================================================
+" Test49
+" Test for creating a new file by saving an unnamed buffer.
+" ==========================================================================
+func Test_49()
+  let test_name = 'test49'
+  enew | only
+  call setline(1, 'sample file')
+  write sample.txt
+  let l = readfile(g:MRU_File)
+  if match(l, 'sample.txt') != -1
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL')
+  endif
+  call delete('sample.txt')
+  bwipe sample.txt
 endfunc
 
 " ==========================================================================

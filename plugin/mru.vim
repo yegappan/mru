@@ -948,7 +948,6 @@ call s:MRU_LoadList()
 " MRU autocommands {{{1
 " Autocommands to update the most recently used files
 autocmd BufRead * call s:MRU_AddFile(expand('<abuf>'))
-autocmd BufNewFile * call s:MRU_AddFile(expand('<abuf>'))
 autocmd BufWritePost * call s:MRU_AddFile(expand('<abuf>'))
 autocmd BufEnter * call s:MRU_AddFile(expand('<abuf>'))
 
