@@ -2,7 +2,7 @@
 
 # Script to run the unit-tests for the MRU Vim plugin
 
-VIM=/usr/bin/vim
+VIM=${VIM:=/usr/bin/vim}
 VIM_CMD="$VIM -N -u NONE -U NONE -i NONE"
 
 $VIM_CMD -S unit_tests.vim
