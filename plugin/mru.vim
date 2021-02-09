@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.10
-" Last Modified: Feb 2, 2021
+" Last Modified: Feb 8, 2021
 " Copyright: Copyright (C) 2003-2021 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -930,7 +930,15 @@ func! s:MRU_Refresh_Menu() abort
   let &cpoptions = old_cpoptions
 endfunc
 
-" MRU_Delete_From_List	{{{1
+" MRU_Refresh    {{{1
+" Remove non-existing files from the MRU list
+func s:MRU_Refresh()
+  call filter(s:MRU_files, 'filereadable(v:val)')
+  call s:MRU_SaveList()
+  call s:MRU_Refresh_Menu()
+endfunc
+
+" MRU_Delete_From_List    {{{1
 " remove the entry under cursor in the MRU window from the MRU list
 func s:MRU_Delete_From_List()
   call filter(s:MRU_files,
@@ -940,6 +948,21 @@ func s:MRU_Delete_From_List()
   setlocal nomodifiable
   call s:MRU_SaveList()
   call s:MRU_Refresh_Menu()
+endfunc
+
+" Return the list of file names in the MRU list {{{1
+func MruGetFiles(...)
+  " Load the latest MRU list
+  call s:MRU_LoadList()
+  if a:0 == 1
+    if g:MRU_FuzzyMatch
+      " Return only the files fuzzy matching the specified pattern
+      return matchfuzzy(s:MRU_files, a:1)
+    endif
+    " Return only the files matching the specified pattern
+    return filter(copy(s:MRU_files), 'v:val =~? a:1')
+  endif
+  return copy(s:MRU_files)
 endfunc
 
 " Load the MRU list on plugin startup
@@ -957,7 +980,7 @@ autocmd BufEnter * call s:MRU_AddFile(expand('<abuf>'))
 autocmd QuickFixCmdPre *vimgrep* let s:mru_list_locked = 1
 autocmd QuickFixCmdPost *vimgrep* let s:mru_list_locked = 0
 
-" Command to open the MRU window
+" MRU custom commands {{{1
 if v:version >= 800
   command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 MRU
 	\ call s:MRU_Cmd(<q-args>, <q-mods>, <count>)
@@ -969,8 +992,9 @@ else
   command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 Mru
 	\ call s:MRU_Cmd(<q-args>, '', <count>)
 endif
+command! -nargs=0 MruRefresh call s:MRU_Refresh()
 
-" FZF (fuzzy finder) integration
+" FZF (fuzzy finder) integration    {{{1
 func s:MRU_FZF_EditFile(fname) abort
   call s:MRU_Window_Edit_File(a:fname, 0, 'edit', 'useopen')
 endfunc

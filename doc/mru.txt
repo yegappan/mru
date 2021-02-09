@@ -201,11 +201,30 @@ window. By default, this syntax group is linked to the Identifier highlight
 group. You can change the highlight group by adding the following line in
 your .vimrc:
 >
-   highlight link MRUFileName LineNr
+    highlight link MRUFileName LineNr
 <
 The MRU buffer uses the 'mru file type. You can use this file type to add
 custom auto commands, syntax highlighting, etc.
 
+						*:MruRefresh*
+After using the MRU plugin for a period of time, the MRU list may contain
+files which are no longer present in the system. The |:MruRefresh| command can
+be used to remove non-existing files from the MRU list.
+
+						*MruGetFiles()*
+The MruGetFiles() function can be used to get the current list of file names
+in the MRU list as a |List|. This can be used with Ex commands that accept one
+or more file names as argument. Some example uses for this function are below:
+>
+    " search for 'my_text' in all the files in the MRU list
+    :vimgrep my_text `=MruGetFiles()`
+    " search for 'my_text' in the files ending in .java in the MRU list
+    :vimgrep my_text `=MruGetFiles('.java')`
+    " add all the .py files in the MRU list to the argument list
+    :n `=MruGetFiles('.py')`
+    " Add the files in MRU list to a quickfix list
+    :call setqflist([], ' ', {'efm' : '%f', 'lines' : MruGetFiles()})
+<
 ==============================================================================
 4. Configuration				*mru-configuration*
 
