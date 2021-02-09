@@ -14,8 +14,9 @@ echo
 grep FAIL results.txt > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
-    echo "ERROR: Some test failed."
-else
-    echo "SUCCESS: All the tests passed."
+  echo "ERROR: Some test(s) failed."
+  exit 1
 fi
 
+echo "SUCCESS: All the tests passed."
+exit 0
