@@ -19,9 +19,7 @@ source ../plugin/mru.vim
 
 " Function to log test results
 func! LogResult(test, result)
-    redir >> results.txt
-        silent echon "\r" . a:test . ': ' . a:result . "\n"
-    redir END
+  call add(g:results, a:test . ': ' . a:result)
 endfunc
 
 " ==========================================================================
@@ -1477,6 +1475,7 @@ call writefile(['#include <stdlib.h', 'int main(){}'], 'def.c')
 " Remove the results from the previous test runs
 call delete('results.txt')
 call delete(g:MRU_File)
+let results = []
 
 " Generate a sorted list of Test_ functions to run
 redir @q
@@ -1491,6 +1490,8 @@ for one_test in sort(s:tests)
   exe 'call ' . one_test
 endfor
 set more
+
+call writefile(results, 'results.txt')
 
 " TODO:
 " Add the following tests:

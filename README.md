@@ -6,9 +6,9 @@ The Most Recently Used (MRU) plugin provides an easy access to a list of
 recently opened/edited files in Vim. This plugin automatically stores the 
 file names as you open/edit them in Vim. 
 
-This plugin will work on all the platforms where Vim is supported. This 
-plugin will work in both console and GUI Vim. This version of the MRU 
-plugin needs Vim 7.0 and above.
+This plugin works with both Vim and Neovim and will work on all the platforms
+where Vim/Neovim are supported.  This plugin will work in both console and GUI
+Vim. This version of the MRU plugin needs Vim 7.0 and above.
 
 ## Installation
 
@@ -37,6 +37,13 @@ You can also install this plugin directly from github using the following steps 
 ```
     $ mkdir -p $HOME/.vim/pack/downloads/start/mru
     $ cd $HOME/.vim/pack/downloads/start/mru
+    $ git clone https://github.com/yegappan/mru
+```
+
+For NeoVim:
+```
+    $ mkdir -p $HOME/.config/nvim/pack/downloads/start/mru
+    $ cd $HOME/.config/nvim/pack/downloads/start/mru
     $ git clone https://github.com/yegappan/mru
 ```
 

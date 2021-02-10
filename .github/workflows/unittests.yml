@@ -23,8 +23,8 @@ jobs:
       - name: Run Tests
         run: |
           uname -a
-          export VIM=${{ steps.vim.outputs.executable }}
-          $VIM --version
+          export VIMPRG=${{ steps.vim.outputs.executable }}
+          $VIMPRG --version
           cd test
           ./run_mru_tests.sh
   windows:
@@ -60,7 +60,7 @@ jobs:
       - name: Run Tests
         run: |
           uname -a
-          export VIM=${{ steps.vim.outputs.executable }}
-          $VIM --version
+          export VIMPRG=${{ steps.vim.outputs.executable }}
+          $VIMPRG --version
           cd test
           ./run_mru_tests.sh
