@@ -1,3 +1,4 @@
+![unit-tests](https://github.com/yegappan/mru/workflows/unit-tests/badge.svg?branch=master)
 
 # Most Recently Used (MRU) Vim plugin
 
