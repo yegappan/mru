@@ -45,3 +45,22 @@ jobs:
           vim --version
           cd test
           .\run_mru_tests.cmd
+  neovim-linux:
+    name: neovim-linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Neovim
+        uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: stable
+          neovim: true
+      - name: Run Tests
+        run: |
+          uname -a
+          export VIM=${{ steps.vim.outputs.executable }}
+          $VIM --version
+          cd test
+          ./run_mru_tests.sh
