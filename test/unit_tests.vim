@@ -1425,6 +1425,46 @@ func Test_49()
 endfunc
 
 " ==========================================================================
+" Test50
+" Test for the MruGetFiles() function
+" ==========================================================================
+func Test_50()
+  let test_name = 'test50'
+  enew | only
+  let list1 = MruGetFiles()
+  let list2 = readfile(g:MRU_File)
+  if list1 != list2[1:]
+    call LogResult(test_name, 'FAIL 1')
+    return
+  endif
+
+  if MruGetFiles('x1y2z3') == []
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL 2')
+  endif
+endfunc
+
+" ==========================================================================
+" Test51
+" Test for the :MruRefresh command
+" ==========================================================================
+func Test_51()
+  let test_name = 'test51'
+  enew | only
+  if match(MruGetFiles(), 'sample.txt') == -1
+    call LogResult(test_name, 'FAIL 1')
+    return
+  endif
+  MruRefresh
+  if match(MruGetFiles(), 'sample.txt') == -1
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL 2')
+  endif
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
