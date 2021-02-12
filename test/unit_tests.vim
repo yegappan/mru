@@ -6,13 +6,16 @@ let MRU_Auto_Close=1
 let MRU_Max_Entries=10
 let MRU_buffer_name = '-RecentFiles-'
 
-" Set the following variable to 1, to profile the MRU plugin
-let s:do_profile=0
+" Set the $MRU_PROFILE environment variable to profile the MRU plugin
+let s:do_profile = 0
+if exists('$MRU_PROFILE')
+  let s:do_profile = 1
+endif
 
 " Profile the MRU plugin
 if s:do_profile
-    profile start mru_profile.txt
-    profile! file */mru.vim
+  profile start mru_profile.txt
+  profile! file */mru.vim
 endif
 
 source ../plugin/mru.vim
