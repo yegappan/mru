@@ -5,6 +5,8 @@ jobs:
     name: linux
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
       - name: Run Tests
         run: |
           uname -a
@@ -22,7 +24,7 @@ jobs:
       - name: Run covimerage
         run: |
           cd ./test
-          covimerage write_coverage profile.txt
+          covimerage write_coverage mru_profile.txt
       - name: Take coverage
         run: |
           cd ./test
