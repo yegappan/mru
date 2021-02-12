@@ -1,4 +1,4 @@
-![unit-tests](https://github.com/yegappan/mru/workflows/unit-tests/badge.svg?branch=master)
+![unit-tests](https://github.com/yegappan/mru/workflows/unit-tests/badge.svg?branch=master) ![coverage](https://github.com/yegappan/mru/workflows/coverage/badge.svg)
 
 # Most Recently Used (MRU) Vim plugin
 
