@@ -18,34 +18,27 @@ https://github.com/yegappan/mru/releases/latest
 
 For Vim 8.0 and above, you can expand the .zip file in the following directory (on Unix/Linux/MacOS systems):
 
-```
     $ mkdir -p $HOME/.vim/pack/downloads/start/mru
     $ cd $HOME/.vim/pack/downloads/start/mru
     $ unzip <downloaded_mru_file.zip>
-```
 
 For Vim 7.4 and before, you can use the following steps (on Unix/Linux/MacOS systems):
 
-```
     $ mkdir $HOME/.vim
     $ cd $HOME/.vim
     $ unzip <downloaded_mru_file.zip>
-```
 
 You can also install this plugin directly from github using the following steps (for Vim 8.0 and above):
 
-```
     $ mkdir -p $HOME/.vim/pack/downloads/start/mru
     $ cd $HOME/.vim/pack/downloads/start/mru
     $ git clone https://github.com/yegappan/mru
-```
 
 For NeoVim:
-```
+
     $ mkdir -p $HOME/.config/nvim/pack/downloads/start/mru
     $ cd $HOME/.config/nvim/pack/downloads/start/mru
     $ git clone https://github.com/yegappan/mru
-```
 
 or you can use any one of the Vim plugin managers ([vim-plug](https://github.com/junegunn/vim-plug), [dein.vim](https://github.com/Shougo/dein.vim), [pathogen](https://github.com/tpope/vim-pathogen), [minpac](https://github.com/k-takata/minpac), [vam](https://github.com/MarcWeber/vim-addon-manager), [volt](https://github.com/vim-volt/volt), [Vundle](https://github.com/VundleVim/Vundle.vim), etc.) to install and manage this plugin.
 
@@ -53,16 +46,15 @@ or you can use any one of the Vim plugin managers ([vim-plug](https://github.com
 After the plugin is installed, it will automatically start to record all the recently used files in the `$HOME/.vim_mru_files` text file.
 
 To open a file from the recently used file list, enter the following command:
-```
-	:MRU
-```
+
+    :MRU
 
 This will open a temporary window with the MRU list where you can press `<Enter>` to open a file.
 
 You can fuzzy search a text in the list of file names, by passing a search text to the `:MRU` command:
-```
-	:MRU <search_text>
-```
+
+    :MRU <search_text>
+
 This will open the MRU window with only the file names fuzzy matching the supplied search string.
 
 The user manual is available at:
