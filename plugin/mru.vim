@@ -309,6 +309,8 @@ func! s:MRU_Edit_File(filename, sanitized) abort
 	exe 'edit ' . esc_fname
       endif
     endif
+    " Make the buffer a listed buffer (in case it was deleted before)
+    set buflisted
   endif
 endfunc
 
@@ -480,6 +482,9 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
       endif
     endif
   endif
+
+  " Make the buffer a listed buffer (in case it was deleted before)
+  set buflisted
 endfunc
 
 " MRU_Select_File_Cmd                   {{{1

@@ -1466,6 +1466,37 @@ func Test_51()
 endfunc
 
 " ==========================================================================
+" Test52
+" Test for the re-opening a deleted buffer from the MRU list
+" ==========================================================================
+func Test_52()
+  let test_name = 'test52'
+  edit file1.txt
+  edit file2.txt
+  bd
+  " select the file from the MRU window
+  MRU
+  call search('file2.txt')
+  exe "normal \<Enter>"
+  if &buflisted && fnamemodify(@%, ':p:t') ==# 'file2.txt'
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL 1')
+  endif
+  " open the file directly using the command
+  %bw!
+  edit file2.txt
+  edit file1.txt
+  bd
+  MRU file1.txt
+  if &buflisted && fnamemodify(@%, ':p:t') ==# 'file1.txt'
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL 2')
+  endif
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
