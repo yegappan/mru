@@ -105,6 +105,9 @@ To list and edit files from the Most Recently Used (MRU) list, you can use the
 in a temporary Vim window.  If the MRU window is already opened, then the MRU
 list currently displayed in the window is refreshed.
 
+Alternatively, ":MRUToggle" will toggle the MRU window; so that if it is
+already opened, :MRUToggle again will close the window.
+
 If you are using GUI Vim, then the names of the recently edited files are
 added to the "File->Recent Files" menu. You can select the name of a file
 from this sub-menu to edit the file.
