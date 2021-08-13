@@ -1497,6 +1497,71 @@ func Test_52()
 endfunc
 
 " ==========================================================================
+" Test53
+" Test for using a command modifier when directly opening a file using the
+" MRU command.
+" ==========================================================================
+func Test_53()
+  let test_name = 'test53'
+  %bw!
+  topleft MRU file2.txt
+  if winnr('$') == 2 && winnr() == 1 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
+    wincmd j
+    if winnr() == 2
+      call LogResult(test_name, 'pass')
+    else
+      call LogResult(test_name, 'FAIL 1')
+    endif
+  else
+    call LogResult(test_name, 'FAIL 2')
+  endif
+  %bw
+  belowright MRU file2.txt
+  if winnr('$') == 2 && winnr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
+    wincmd k
+    if winnr() == 1
+      call LogResult(test_name, 'pass')
+    else
+      call LogResult(test_name, 'FAIL 3')
+    endif
+  else
+    call LogResult(test_name, 'FAIL 4')
+  endif
+  %bw
+  vertical topleft MRU file2.txt
+  if winnr('$') == 2 && winnr() == 1 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
+    wincmd l
+    if winnr() == 2
+      call LogResult(test_name, 'pass')
+    else
+      call LogResult(test_name, 'FAIL 5')
+    endif
+  else
+    call LogResult(test_name, 'FAIL 6')
+  endif
+  %bw
+  vertical belowright MRU file2.txt
+  if winnr('$') == 2 && winnr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
+    wincmd h
+    if winnr() == 1
+      call LogResult(test_name, 'pass')
+    else
+      call LogResult(test_name, 'FAIL 7')
+    endif
+  else
+    call LogResult(test_name, 'FAIL 8')
+  endif
+  %bw
+  tab MRU file2.txt
+  if tabpagenr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
+    call LogResult(test_name, 'pass')
+  else
+    call LogResult(test_name, 'FAIL 9')
+  endif
+  %bw
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')

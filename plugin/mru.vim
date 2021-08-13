@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 3.10.1
-" Last Modified: Feb 13, 2021
+" Version: 3.10.2
+" Last Modified: August 13, 2021
 " Copyright: Copyright (C) 2003-2021 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -269,8 +269,9 @@ endfunc
 "   filename - Name of the file to edit
 "   sanitized - Specifies whether the filename is already escaped for special
 "   characters or not.
+"   splitdir - command modifier for a split (topleft, belowright, etc.)
 " Used by the :MRU command and the "Recent Files" menu item
-func! s:MRU_Edit_File(filename, sanitized) abort
+func! s:MRU_Edit_File(filename, sanitized, splitdir) abort
   if !a:sanitized
     let esc_fname = s:MRU_escape_filename(a:filename)
   else
@@ -292,14 +293,17 @@ func! s:MRU_Edit_File(filename, sanitized) abort
       exe winnum . 'wincmd w'
     endif
   else
-    if !&hidden && (&modified || &buftype != '' || &previewwindow)
-      " Current buffer has unsaved changes or is a special buffer or is
-      " the preview window.  The 'hidden' option is also not set.
-      " So open the file in a new window.
+    if a:splitdir != '' || (!&hidden && (&modified || &buftype != ''
+	  \ || &previewwindow))
+      " If a split command modifier is specified, always open the file
+      " in a new window.
+      " Or if the current buffer has unsaved changes or is a special buffer or
+      " is the preview window.  The 'hidden' option is also not set.  So open
+      " the file in a new window.
       if bufexists(esc_fname)
-	exe 'sbuffer ' . esc_fname
+	exe a:splitdir .. ' sbuffer ' . esc_fname
       else
-	exe 'split ' . esc_fname
+	exe a:splitdir .. ' split ' . esc_fname
       endif
     else
       " The current file can be replaced with the selected file.
@@ -789,14 +793,14 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
   endif
   if len(m) > 0
     if len(m) == 1 && !g:MRU_Window_Open_Always
-      call s:MRU_Edit_File(m[0], 0)
+      call s:MRU_Edit_File(m[0], 0, a:splitdir)
       return
     endif
 
     " More than one file matches. Try to find an accurate match
     let new_m = filter(m, 'v:val ==# a:pat')
     if len(new_m) == 1 && !g:MRU_Window_Open_Always
-      call s:MRU_Edit_File(new_m[0], 0)
+      call s:MRU_Edit_File(new_m[0], 0, a:splitdir)
       return
     endif
 
@@ -814,7 +818,7 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
     " If an existing file (not present in the MRU list) is specified,
     " then open the file.
     if filereadable(a:pat)
-      call s:MRU_Edit_File(a:pat, 0)
+      call s:MRU_Edit_File(a:pat, 0, a:splitdir)
       return
     endif
 
@@ -825,7 +829,7 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
   endif
 
   if len(m) == 1 && !g:MRU_Window_Open_Always
-    call s:MRU_Edit_File(m[0], 0)
+    call s:MRU_Edit_File(m[0], 0, a:splitdir)
     return
   endif
 
@@ -871,7 +875,7 @@ func! s:MRU_add_files_to_menu(prefix, file_list) abort
 	  \ '\ (' . esc_dir_name . ')'
     let esc_mfname = s:MRU_escape_filename(fname)
     exe 'anoremenu <silent> ' . menu_path .
-	  \ " :call <SID>MRU_Edit_File('" . esc_mfname . "', 1)<CR>"
+	  \ " :call <SID>MRU_Edit_File('" . esc_mfname . "', 1, '')<CR>"
     exe 'tmenu ' . menu_path . ' Edit file ' . esc_mfname
   endfor
 endfunc

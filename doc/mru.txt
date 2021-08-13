@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: Feb 10, 2021
+Last change: August 13, 2021
 
 ==============================================================================
 						*mru-license*
@@ -191,6 +191,22 @@ or <Ctrl-D> to complete or list all the matching file names. Note that
 after typing the |:MRU| command, you have to enter a space before completing
 the file names with <Tab>.
 
+When the search pattern supplied to the |:MRU| command matches only one file,
+then the file will be opened in the current window if it contains an
+unmodified buffer. Otherwise it will be opend in a new window.  You can use
+command-line completion to select a file and directly open the file without
+opening the MRU window. If you are using Vim version 8.0 and above, you can
+use the command modifiers (|:leftabove|, |:rightbelow|, |:vertical|, |:tab|,
+etc.) to open the file in a horizontally or vertically split window or a tab
+page.  Example: >
+
+    :topleft MRU myfile.py		" horizontally split topmost window
+    :botright MRU myfile.py		" horizontally split bottommost window
+    :vertical MRU myfile.py		" vertically split window
+    :vertical topleft MRU myfile.py	" vertically split far-left window
+    :vertical botright MRU myfile.py	" vertically split far-right window
+    :tab MRU myfile.py			" new tab page
+<
 When a file supplied to the |:MRU| command is not present in the MRU list,
 but it is a readable file, then the file will be opened (even though it is
 not present in the MRU list). This is useful if you want to open a file
