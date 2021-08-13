@@ -1502,6 +1502,9 @@ endfunc
 " MRU command.
 " ==========================================================================
 func Test_53()
+  if v:version < 800
+    return
+  endif
   let test_name = 'test53'
   %bw!
   topleft MRU file2.txt
