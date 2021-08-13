@@ -301,9 +301,9 @@ func! s:MRU_Edit_File(filename, sanitized, splitdir) abort
       " is the preview window.  The 'hidden' option is also not set.  So open
       " the file in a new window.
       if bufexists(esc_fname)
-	exe a:splitdir .. ' sbuffer ' . esc_fname
+	exe a:splitdir . ' sbuffer ' . esc_fname
       else
-	exe a:splitdir .. ' split ' . esc_fname
+	exe a:splitdir . ' split ' . esc_fname
       endif
     else
       " The current file can be replaced with the selected file.

@@ -1435,14 +1435,14 @@ func Test_50()
   let list1 = MruGetFiles()
   let list2 = readfile(g:MRU_File)
   if list1 != list2[1:]
-    call LogResult(test_name, 'FAIL 1')
+    call LogResult(test_name, 'FAIL (1)')
     return
   endif
 
   if MruGetFiles('x1y2z3') == []
     call LogResult(test_name, 'pass')
   else
-    call LogResult(test_name, 'FAIL 2')
+    call LogResult(test_name, 'FAIL (2)')
   endif
 endfunc
 
@@ -1454,14 +1454,14 @@ func Test_51()
   let test_name = 'test51'
   enew | only
   if match(MruGetFiles(), 'sample.txt') == -1
-    call LogResult(test_name, 'FAIL 1')
+    call LogResult(test_name, 'FAIL (1)')
     return
   endif
   MruRefresh
   if match(MruGetFiles(), 'sample.txt') == -1
     call LogResult(test_name, 'pass')
   else
-    call LogResult(test_name, 'FAIL 2')
+    call LogResult(test_name, 'FAIL (2)')
   endif
 endfunc
 
@@ -1478,10 +1478,9 @@ func Test_52()
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  if &buflisted && fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL 1')
+  if !&buflisted || fnamemodify(@%, ':p:t') !=# 'file2.txt'
+    call LogResult(test_name, 'FAIL (1)')
+    return
   endif
   " open the file directly using the command
   %bw!
@@ -1489,11 +1488,11 @@ func Test_52()
   edit file1.txt
   bd
   MRU file1.txt
-  if &buflisted && fnamemodify(@%, ':p:t') ==# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL 2')
+  if !&buflisted || fnamemodify(@%, ':p:t') !=# 'file1.txt'
+    call LogResult(test_name, 'FAIL (2)')
+    return
   endif
+  call LogResult(test_name, 'pass')
 endfunc
 
 " ==========================================================================
@@ -1510,58 +1509,58 @@ func Test_53()
   topleft MRU file2.txt
   if winnr('$') == 2 && winnr() == 1 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
     wincmd j
-    if winnr() == 2
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL 1')
+    if winnr() != 2
+      call LogResult(test_name, 'FAIL (1)')
+      return
     endif
   else
-    call LogResult(test_name, 'FAIL 2')
+    call LogResult(test_name, 'FAIL (2)')
+    return
   endif
   %bw
   belowright MRU file2.txt
   if winnr('$') == 2 && winnr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
     wincmd k
-    if winnr() == 1
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL 3')
+    if winnr() != 1
+      call LogResult(test_name, 'FAIL (3)')
+      return
     endif
   else
-    call LogResult(test_name, 'FAIL 4')
+    call LogResult(test_name, 'FAIL (4)')
+    return
   endif
   %bw
   vertical topleft MRU file2.txt
   if winnr('$') == 2 && winnr() == 1 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
     wincmd l
-    if winnr() == 2
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL 5')
+    if winnr() != 2
+      call LogResult(test_name, 'FAIL (5)')
+      return
     endif
   else
-    call LogResult(test_name, 'FAIL 6')
+    call LogResult(test_name, 'FAIL (6)')
+    return
   endif
   %bw
   vertical belowright MRU file2.txt
   if winnr('$') == 2 && winnr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
     wincmd h
-    if winnr() == 1
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL 7')
+    if winnr() != 1
+      call LogResult(test_name, 'FAIL (7)')
+      return
     endif
   else
-    call LogResult(test_name, 'FAIL 8')
+    call LogResult(test_name, 'FAIL (8)')
+    return
   endif
   %bw
   tab MRU file2.txt
-  if tabpagenr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL 9')
+  if tabpagenr() != 2 || fnamemodify(@%, ':p:t') !=# 'file2.txt'
+    call LogResult(test_name, 'FAIL (9)')
+    return
   endif
   %bw
+  call LogResult(test_name, 'pass')
 endfunc
 
 " ==========================================================================
