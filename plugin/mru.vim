@@ -836,6 +836,20 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
   call s:MRU_Open_Window(a:pat, a:splitdir, a:winsz)
 endfunc
 
+" MRU_Toggle                          {{{1
+" Toggle MRU
+"   pat - File name pattern passed to the MRU command
+function! s:MRU_Toggle(pat, splitdir)
+    " If the MRU window is open, close it
+    let winnum = bufwinnr(s:MRU_buf_name)
+    if winnum != -1
+        exe winnum . 'wincmd w'
+        silent! close
+    else
+        call s:MRU_Cmd(a:pat, a:splitdir, '')
+    endif
+endfunction
+
 " MRU_add_files_to_menu                 {{{1
 " Adds a list of files to the "Recent Files" sub menu under the "File" menu.
 "   prefix - Prefix to use for each of the menu entries
@@ -995,11 +1009,15 @@ if v:version >= 800
 	\ call s:MRU_Cmd(<q-args>, <q-mods>, <count>)
   command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 Mru
 	\ call s:MRU_Cmd(<q-args>, <q-mods>, <count>)
+  command! -nargs=? -complete=customlist,s:MRU_Complete MRUToggle
+              \ call s:MRU_Toggle(<q-args>, <q-mods>)
 else
   command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 MRU
 	\ call s:MRU_Cmd(<q-args>, '', <count>)
   command! -nargs=? -complete=customlist,s:MRU_Complete -count=0 Mru
 	\ call s:MRU_Cmd(<q-args>, '', <count>)
+  command! -nargs=? -complete=customlist,s:MRU_Complete MRUToggle
+              \ call s:MRU_Toggle(<q-args>, '')
 endif
 command! -nargs=0 MruRefresh call s:MRU_Refresh()
 
