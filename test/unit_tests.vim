@@ -1564,6 +1564,36 @@ func Test_53()
 endfunc
 
 " ==========================================================================
+" Test54
+" Test for the :MRUToggle command.
+" ==========================================================================
+func Test_54()
+  let test_name = 'test54'
+  %bw!
+  " open the MRU window
+  MRUToggle
+  if bufwinnr(g:MRU_buffer_name) != 2 || winnr() != 2
+    call LogResult(test_name, 'FAIL (1)')
+    return
+  endif
+  " close the MRU window
+  MRUToggle
+  if bufwinnr(g:MRU_buffer_name) != -1 || winnr() != 1
+    call LogResult(test_name, 'FAIL (2)')
+    return
+  endif
+  " close the MRU window from some other window
+  MRUToggle
+  wincmd k
+  MRUToggle
+  if bufwinnr(g:MRU_buffer_name) != -1 || winnr() != 1
+    call LogResult(test_name, 'FAIL (3)')
+    return
+  endif
+  call LogResult(test_name, 'pass')
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
