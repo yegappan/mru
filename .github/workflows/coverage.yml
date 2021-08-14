@@ -16,7 +16,9 @@ jobs:
           cd ./test
           ./run_mru_tests.sh
       - name: Install Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.5
       - name: Install covimerage
         run: |
           pip install covimerage
