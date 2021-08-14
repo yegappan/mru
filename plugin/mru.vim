@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.10.2
-" Last Modified: August 13, 2021
+" Last Modified: August 14, 2021
 " Copyright: Copyright (C) 2003-2021 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -22,8 +22,8 @@ if v:version < 700
 endif
 
 " Line continuation used here
-let s:cpo_save = &cpo
-set cpo&vim
+let s:cpo_save = &cpoptions
+set cpoptions&vim
 
 " MRU configuration variables {{{1
 " Maximum number of entries allowed in the MRU list
@@ -62,7 +62,7 @@ if !exists('g:MRU_File')
     let s:MRU_File = $VIM . '/_vim_mru_files'
     if has('win32')
       " MS-Windows
-      if $USERPROFILE != ''
+      if !empty($USERPROFILE)
 	let s:MRU_File = $USERPROFILE . '\_vim_mru_files'
       endif
     endif
@@ -184,17 +184,17 @@ func! s:MRU_AddFile(acmd_bufnr) abort
 
   " Get the full path to the filename
   let fname = fnamemodify(bufname(a:acmd_bufnr + 0), ':p')
-  if fname == ''
+  if empty(fname)
     return
   endif
 
   " Skip temporary buffers with buftype set. The buftype is set for buffers
   " used by plugins.
-  if &buftype != ''
+  if !empty(&buftype)
     return
   endif
 
-  if g:MRU_Include_Files != ''
+  if !empty(g:MRU_Include_Files)
     " If MRU_Include_Files is set, include only files matching the
     " specified pattern
     if fname !~# g:MRU_Include_Files
@@ -202,7 +202,7 @@ func! s:MRU_AddFile(acmd_bufnr) abort
     endif
   endif
 
-  if g:MRU_Exclude_Files != ''
+  if !empty(g:MRU_Exclude_Files)
     " Do not add files matching the pattern specified in the
     " MRU_Exclude_Files to the MRU list
     if fname =~# g:MRU_Exclude_Files
@@ -257,7 +257,7 @@ endfunc
 " that should be escaped (for security reasons)
 let s:esc_filename_chars = ' *?[{`$%#"|!<>();&' . "'\t\n"
 func! s:MRU_escape_filename(fname) abort
-  if exists("*fnameescape")
+  if exists('*fnameescape')
     return fnameescape(a:fname)
   else
     return escape(a:fname, s:esc_filename_chars)
@@ -293,7 +293,7 @@ func! s:MRU_Edit_File(filename, sanitized, splitdir) abort
       exe winnum . 'wincmd w'
     endif
   else
-    if a:splitdir != '' || (!&hidden && (&modified || &buftype != ''
+    if !empty(a:splitdir) || (!&hidden && (&modified || !empty(&buftype)
 	  \ || &previewwindow))
       " If a split command modifier is specified, always open the file
       " in a new window.
@@ -342,7 +342,7 @@ func! s:MRU_Open_File_In_Tab(fname, esc_fname) abort
       " Goto the tab containing the file
       exe 'tabnext ' . i
     else
-      if (winnr("$") == 1) && (@% == '') && !&modified
+      if (winnr('$') == 1) && empty(@%) && !&modified
 	" Reuse the current tab if it contains a single new unmodified
 	" file.
 	if bufexists(a:esc_fname)
@@ -452,7 +452,7 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
 	let split_window = 1
       endif
 
-      if &buftype != ''
+      if !empty(&buftype)
 	" Current buffer is a special buffer (maybe used by a plugin)
 	if g:MRU_Use_Current_Window == 0 ||
 	      \ bufnr('%') != bufnr(s:MRU_buf_name)
@@ -517,7 +517,7 @@ func! s:MRU_Select_File_Cmd(opt) range abort
   let multi = 0
 
   for f in fnames
-    if f == ''
+    if empty(f)
       continue
     endif
 
@@ -584,7 +584,7 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
       " If the current buffer has unsaved changes or is a special buffer
       " or is the preview window and 'hidden' is not set, then open a
       " new window. Otherwise, open in the current window.
-      if !&hidden && (&modified || &buftype != '' || &previewwindow)
+      if !&hidden && (&modified || !empty(&buftype) || &previewwindow)
 	let split_window = 1
       else
 	let split_window = 0
@@ -616,7 +616,7 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
     else
       " Open a new window at the bottom
       let cmd = 'silent! '
-      if a:splitdir == ''
+      if empty(a:splitdir)
 	let cmd .= 'botright '
       else
 	let cmd .= a:splitdir . ' '
@@ -708,7 +708,7 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
   let &cpoptions = old_cpoptions
 
   " Display the MRU list
-  if a:pat == ''
+  if empty(a:pat)
     " No search pattern specified. Display the complete list
     let m = copy(s:MRU_files)
   else
@@ -748,7 +748,7 @@ endfunc
 " MRU_Complete                          {{{1
 " Command-line completion function used by :MRU command
 func! s:MRU_Complete(ArgLead, CmdLine, CursorPos) abort
-  if a:ArgLead == ''
+  if empty(a:ArgLead)
     " Return the complete list of MRU files
     return s:MRU_files
   else
@@ -766,7 +766,7 @@ endfunc
 " Function to handle the MRU command
 "   pat - File name pattern passed to the MRU command
 func! s:MRU_Cmd(pat, splitdir, winsz) abort
-  if a:pat == ''
+  if empty(a:pat)
     " No arguments specified. Open the MRU window
     call s:MRU_Open_Window('', a:splitdir, a:winsz)
     return
@@ -824,7 +824,7 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
 
     " No filenames matching the specified pattern are found
     call s:MRU_Warn_Msg("MRU file list doesn't contain " .
-	  \ "files matching " . a:pat)
+	  \ 'files matching ' . a:pat)
     return
   endif
 
@@ -863,7 +863,7 @@ func! s:MRU_add_files_to_menu(prefix, file_list) abort
 
     " Truncate the directory name if it is long
     let dir_name = fnamemodify(fname, ':h')
-    if v:version >= 800 || has("patch-7.4.1730")
+    if v:version >= 800 || has('patch-7.4.1730')
       let len = strchars(dir_name)
       " Shorten long file names by adding only few characters from
       " the beginning and end.
@@ -993,15 +993,18 @@ call s:MRU_LoadList()
 
 " MRU autocommands {{{1
 " Autocommands to update the most recently used files
-autocmd BufRead * call s:MRU_AddFile(expand('<abuf>'))
-autocmd BufWritePost * call s:MRU_AddFile(expand('<abuf>'))
-autocmd BufEnter * call s:MRU_AddFile(expand('<abuf>'))
+augroup MRUAutoCmds
+  au!
+  autocmd BufRead * call s:MRU_AddFile(expand('<abuf>'))
+  autocmd BufWritePost * call s:MRU_AddFile(expand('<abuf>'))
+  autocmd BufEnter * call s:MRU_AddFile(expand('<abuf>'))
 
-" The ':vimgrep' command adds all the files searched to the buffer list.
-" This also modifies the MRU list, even though the user didn't edit the
-" files. Use the following autocmds to prevent this.
-autocmd QuickFixCmdPre *vimgrep* let s:mru_list_locked = 1
-autocmd QuickFixCmdPost *vimgrep* let s:mru_list_locked = 0
+  " The ':vimgrep' command adds all the files searched to the buffer list.
+  " This also modifies the MRU list, even though the user didn't edit the
+  " files. Use the following autocmds to prevent this.
+  autocmd QuickFixCmdPre *vimgrep* let s:mru_list_locked = 1
+  autocmd QuickFixCmdPost *vimgrep* let s:mru_list_locked = 0
+augroup END
 
 " MRU custom commands {{{1
 if v:version >= 800
@@ -1039,8 +1042,8 @@ command! -nargs=0 FZFMru call s:MRU_FZF_Run()
 
 " }}}
 
-" restore 'cpo'
-let &cpo = s:cpo_save
+" restore 'cpoptions'
+let &cpoptions = s:cpo_save
 unlet s:cpo_save
 
 " vim:set sw=2 sts=2 foldenable foldmethod=marker:
