@@ -71,9 +71,8 @@ using the following steps.
 	plugin/mru.vim - MRU plugin
 	doc/mru.txt    - documentation (help) file
 
-3. Change to the $HOME/.vim/doc or $HOME/vimfiles/doc directory, start Vim and
-   run the ":helptags ." command to process the help file. Without this step,
-   you cannot jump to the MRU help topics.
+3. Start Vim and run the ":helptags ALL" command to process the help file.
+   Without this step, you cannot jump to the MRU help topics.
 4. Restart Vim.
 5. You can use the |:MRU| command to list and edit the recently used files.
    In GUI Vim, you can use the 'File->Recent Files' menu to access the
@@ -88,13 +87,13 @@ using the following steps (in Vim 8.0 and above): >
 
     $ mkdir -p $HOME/.vim/pack/downloads/start/mru
     $ cd $HOME/.vim/pack/downloads/start/mru
-    $ git clone https://github.com/yegappan/mru
+    $ git clone https://github.com/yegappan/mru.git
 <
 For Neovim: >
 
     $ mkdir -p $HOME/.config/nvim/pack/downloads/start/mru
     $ cd $HOME/.config/nvim/pack/downloads/start/mru
-    $ git clone https://github.com/yegappan/mru
+    $ git clone https://github.com/yegappan/mru.git
 <
 ==============================================================================
 3. Usage					*mru-usage*
@@ -106,8 +105,9 @@ in a temporary Vim window.  If the MRU window is already opened, then the MRU
 list currently displayed in the window is refreshed.
 
 						*:MRUToggle*
-Alternatively, ":MRUToggle" will toggle the MRU window; so that if it is
-already opened, :MRUToggle again will close the window.
+Alternatively, you can use the ":MRUToggle" command to toggle (open or close)
+the MRU window. If the window is already opened, then running the ":MRUToggle"
+command will close the window.
 
 If you are using GUI Vim, then the names of the recently edited files are
 added to the "File->Recent Files" menu. You can select the name of a file
@@ -197,7 +197,7 @@ the file names with <Tab>.
 
 When the search pattern supplied to the |:MRU| command matches only one file,
 then the file will be opened in the current window if it contains an
-unmodified buffer. Otherwise it will be opend in a new window.  You can use
+unmodified buffer. Otherwise it will be opened in a new window.  You can use
 command-line completion to select a file and directly open the file without
 opening the MRU window. If you are using Vim version 8.0 and above, you can
 use the command modifiers (|:leftabove|, |:rightbelow|, |:vertical|, |:tab|,
