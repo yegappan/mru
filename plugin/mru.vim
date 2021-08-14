@@ -314,7 +314,7 @@ func! s:MRU_Edit_File(filename, sanitized, splitdir) abort
       endif
     endif
     " Make the buffer a listed buffer (in case it was deleted before)
-    set buflisted
+    setlocal buflisted
   endif
 endfunc
 
@@ -488,7 +488,7 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
   endif
 
   " Make the buffer a listed buffer (in case it was deleted before)
-  set buflisted
+  setlocal buflisted
 endfunc
 
 " MRU_Select_File_Cmd                   {{{1
@@ -839,7 +839,7 @@ endfunc
 " MRU_Toggle                          {{{1
 " Toggle MRU
 "   pat - File name pattern passed to the MRU command
-function! s:MRU_Toggle(pat, splitdir)
+func! s:MRU_Toggle(pat, splitdir) abort
     " If the MRU window is open, close it
     let winnum = bufwinnr(s:MRU_buf_name)
     if winnum != -1
