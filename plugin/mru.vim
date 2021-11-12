@@ -1035,6 +1035,7 @@ func s:MRU_FZF_Run() abort
     return
   endif
   call fzf#run(fzf#wrap({'source' : s:MRU_files,
+    \ 'options' : '--no-sort',
 	\ 'sink' : function('s:MRU_FZF_EditFile'),
 	\ 'down' : g:MRU_Window_Height}, 0))
 endfunc
