@@ -1036,8 +1036,8 @@ func s:MRU_FZF_Run() abort
   endif
   call fzf#run(fzf#wrap({'source' : s:MRU_files,
     \ 'options' : '--no-sort',
-	\ 'sink' : function('s:MRU_FZF_EditFile'),
-	\ 'down' : g:MRU_Window_Height}, 0))
+    \ 'sink' : function('s:MRU_FZF_EditFile'),
+    \ 'down' : g:MRU_Window_Height}, 0))
 endfunc
 command! -nargs=0 FZFMru call s:MRU_FZF_Run()
 
