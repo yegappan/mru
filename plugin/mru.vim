@@ -474,14 +474,16 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
 	  exe 'sview ' . esc_fname
 	endif
       else
+	" When using the current window, keep the original alternate file to
+	" avoid switching to an empty MRU files buffer with CTRL-^ and friends
 	if a:edit_type ==# 'edit'
 	  if bufexists(esc_fname)
-	    exe 'buffer ' . esc_fname
+	    exe 'keepalt buffer ' . esc_fname
 	  else
-	    exe 'edit ' . esc_fname
+	    exe 'keepalt edit ' . esc_fname
 	  endif
 	else
-	  exe 'view ' . esc_fname
+	  exe 'keepalt view ' . esc_fname
 	endif
       endif
     endif
