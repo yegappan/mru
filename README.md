@@ -43,13 +43,13 @@ For NeoVim:
 or you can use any one of the Vim plugin managers ([vim-plug](https://github.com/junegunn/vim-plug), [dein.vim](https://github.com/Shougo/dein.vim), [pathogen](https://github.com/tpope/vim-pathogen), [minpac](https://github.com/k-takata/minpac), [vam](https://github.com/MarcWeber/vim-addon-manager), [volt](https://github.com/vim-volt/volt), [Vundle](https://github.com/VundleVim/Vundle.vim), etc.) to install and manage this plugin.
 
 ## Usage
-After the plugin is installed, it will automatically start to record all the recently used files in the `$HOME/.vim_mru_files` text file.
+After the plugin is installed, it will automatically start to record the names of all the recently used files in the `$HOME/.vim_mru_files` text file.
 
 To open a file from the recently used file list, enter the following command:
 
     :MRU
 
-This will open a temporary window with the MRU list where you can press `<Enter>` to open a file.
+This will open a temporary window with the list of file names in the MRU list where you can press `<Enter>` to open a file.
 
 You can fuzzy search a text in the list of file names, by passing a search text to the `:MRU` command:
 
