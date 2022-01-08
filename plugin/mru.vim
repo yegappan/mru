@@ -474,14 +474,18 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
 	  exe 'sview ' . esc_fname
 	endif
       else
+	let mod = ''
+	if g:MRU_Use_Current_Window
+	  let mod = 'keepalt '
+	endif
 	if a:edit_type ==# 'edit'
 	  if bufexists(esc_fname)
-	    exe 'buffer ' . esc_fname
+	    exe mod . 'buffer ' . esc_fname
 	  else
-	    exe 'edit ' . esc_fname
+	    exe mod . 'edit ' . esc_fname
 	  endif
 	else
-	  exe 'view ' . esc_fname
+	  exe mod . 'view ' . esc_fname
 	endif
       endif
     endif

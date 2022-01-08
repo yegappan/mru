@@ -1594,6 +1594,75 @@ func Test_54()
 endfunc
 
 " ==========================================================================
+" Test55
+" Editing a file selected from the MRU window should set the current file to
+" be the alternate file.
+" ==========================================================================
+func Test_55()
+  let test_name = 'test55'
+  %bw!
+  new
+  edit file1.txt
+  edit file2.txt
+  MRU
+  call search('file3.txt')
+  exe "normal \<Enter>"
+  if fnamemodify(@%, ':p:t') !=# 'file3.txt'
+        \ || fnamemodify(@#, ':p:t') !=# 'file2.txt'
+    call LogResult(test_name, 'FAIL')
+    return
+  endif
+  %bw!
+  call LogResult(test_name, 'pass')
+endfunc
+
+" ==========================================================================
+" Test56
+" With MRU_Use_Current_Window set to 1, editing a file from the MRU list
+" should not change the alternate file.
+" ==========================================================================
+func Test_56()
+  let test_name = 'test56'
+  let g:MRU_Use_Current_Window = 1
+  new
+  edit file3.txt
+  edit file1.txt
+  edit file2.txt
+  MRU
+  call search('file3.txt')
+  exe "normal \<Enter>"
+  if fnamemodify(@%, ':p:t') !=# 'file3.txt'
+        \ || fnamemodify(@#, ':p:t') !=# 'file2.txt'
+    call LogResult(test_name, 'FAIL (1)')
+    return
+  endif
+  " try viewing a file
+  MRU
+  call search('file1.txt')
+  normal v
+  if fnamemodify(@%, ':p:t') !=# 'file1.txt'
+        \ || fnamemodify(@#, ':p:t') !=# 'file3.txt'
+        \ || !&readonly
+    call LogResult(test_name, 'FAIL (2)')
+    return
+  endif
+  " try opening a wiped out buffer
+  bw file2.txt
+  MRU
+  call search('file2.txt')
+  exe "normal \<Enter>"
+  if fnamemodify(@%, ':p:t') !=# 'file2.txt'
+        \ || fnamemodify(@#, ':p:t') !=# 'file1.txt'
+        \ || &readonly
+    call LogResult(test_name, 'FAIL (3)')
+    return
+  endif
+  let g:MRU_Use_Current_Window = 0
+  %bw!
+  call LogResult(test_name, 'pass')
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
