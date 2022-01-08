@@ -18,6 +18,9 @@ if s:do_profile
   profile! file */mru.vim
 endif
 
+" Tests assume that 'hidden' option is not set
+set nohidden
+
 source ../plugin/mru.vim
 
 " Function to log test results
