@@ -1483,7 +1483,7 @@ func Test_52()
     return
   endif
   " open the file directly using the command
-  %bw!
+  bw file1.txt file2.txt
   edit file2.txt
   edit file1.txt
   bd
@@ -1569,7 +1569,7 @@ endfunc
 " ==========================================================================
 func Test_54()
   let test_name = 'test54'
-  %bw!
+  only
   " open the MRU window
   MRUToggle
   if bufwinnr(g:MRU_buffer_name) != 2 || winnr() != 2
@@ -1600,7 +1600,7 @@ endfunc
 " ==========================================================================
 func Test_55()
   let test_name = 'test55'
-  %bw!
+  silent! bw file1.txt file2.txt file3.txt
   new
   edit file1.txt
   edit file2.txt
@@ -1612,7 +1612,6 @@ func Test_55()
     call LogResult(test_name, 'FAIL')
     return
   endif
-  %bw!
   call LogResult(test_name, 'pass')
 endfunc
 
@@ -1624,6 +1623,7 @@ endfunc
 func Test_56()
   let test_name = 'test56'
   let g:MRU_Use_Current_Window = 1
+  bw file1.txt file2.txt file3.txt
   new
   edit file3.txt
   edit file1.txt
