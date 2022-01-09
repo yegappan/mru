@@ -853,7 +853,11 @@ func! s:MRU_Toggle(pat, splitdir) abort
     let winnum = bufwinnr(s:MRU_buf_name)
     if winnum != -1
         exe winnum . 'wincmd w'
-        silent! close
+        if g:MRU_Use_Current_Window && !empty(expand('#'))
+          silent! b #
+        else
+          silent! close
+        endif
     else
         call s:MRU_Cmd(a:pat, a:splitdir, '')
     endif
