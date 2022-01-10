@@ -648,7 +648,12 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
 
   " Mark the buffer as scratch
   setlocal buftype=nofile
-  setlocal bufhidden=delete
+  if g:MRU_Use_Current_Window
+    " avoid using mru buffer as alternate file
+    setlocal bufhidden=wipe
+  else
+    setlocal bufhidden=delete
+  endif
   setlocal noswapfile
   setlocal nobuflisted
   setlocal nowrap
