@@ -648,7 +648,12 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
 
   " Mark the buffer as scratch
   setlocal buftype=nofile
-  setlocal bufhidden=delete
+  if g:MRU_Use_Current_Window
+    " avoid using mru buffer as alternate file
+    setlocal bufhidden=wipe
+  else
+    setlocal bufhidden=delete
+  endif
   setlocal noswapfile
   setlocal nobuflisted
   setlocal nowrap
@@ -848,7 +853,11 @@ func! s:MRU_Toggle(pat, splitdir) abort
     let winnum = bufwinnr(s:MRU_buf_name)
     if winnum != -1
         exe winnum . 'wincmd w'
-        silent! close
+        if g:MRU_Use_Current_Window && !empty(expand('#'))
+          silent! b #
+        else
+          silent! close
+        endif
     else
         call s:MRU_Cmd(a:pat, a:splitdir, '')
     endif
