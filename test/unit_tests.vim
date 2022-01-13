@@ -1661,7 +1661,7 @@ func Test_56()
     return
   endif
   let g:MRU_Use_Current_Window = 0
-  %bw!
+  bw!
   call LogResult(test_name, 'pass')
 endfunc
 
@@ -1673,7 +1673,7 @@ endfunc
 func Test_57()
   let test_name = 'test57'
   MRU
-  let mrubnum = bufnr()
+  let mrubnum = bufnr('')
   close
   if bufloaded(mrubnum)
     call LogResult(test_name, 'FAIL (1)')
@@ -1683,14 +1683,14 @@ func Test_57()
   new
   edit Xfile
   MRU
-  let mrubnum = bufnr()
+  let mrubnum = bufnr('')
   edit #
   if bufexists(mrubnum) || @% != 'Xfile'
     call LogResult(test_name, 'FAIL (2)')
     return
   endif
   let g:MRU_Use_Current_Window = 0
-  %bw!
+  bw!
   call LogResult(test_name, 'pass')
 endfunc
 
@@ -1705,7 +1705,7 @@ func Test_58()
   new
   edit Xfile
   MRUToggle
-  if @% != MRU_buffer_name || winnr('$') != 2
+  if @% != g:MRU_buffer_name || winnr('$') != 2
     call LogResult(test_name, 'FAIL (1)')
     return
   endif
