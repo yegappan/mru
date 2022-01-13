@@ -599,7 +599,7 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
       let bufnum = bufnr(bname)
       if bufnum == -1
 	if split_window
-	  let cmd = 'botright split edit ' . bname
+	  let cmd = 'botright split ' . bname
 	else
 	  let cmd = 'edit ' . bname
 	endif

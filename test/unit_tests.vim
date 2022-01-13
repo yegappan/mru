@@ -1666,6 +1666,60 @@ func Test_56()
 endfunc
 
 " ==========================================================================
+" Test57
+" When the MRU window is closed, the MRU buffer should be unloaded.
+" If 'MRU_Use_Current_Window' is set, then the MRU buffer should be wiped out.
+" ==========================================================================
+func Test_57()
+  let test_name = 'test57'
+  MRU
+  let mrubnum = bufnr()
+  close
+  if bufloaded(mrubnum)
+    call LogResult(test_name, 'FAIL (1)')
+    return
+  endif
+  let g:MRU_Use_Current_Window = 1
+  new
+  edit Xfile
+  MRU
+  let mrubnum = bufnr()
+  edit #
+  if bufexists(mrubnum) || @% != 'Xfile'
+    call LogResult(test_name, 'FAIL (2)')
+    return
+  endif
+  let g:MRU_Use_Current_Window = 0
+  %bw!
+  call LogResult(test_name, 'pass')
+endfunc
+
+" ==========================================================================
+" Test58
+" When the MRU window is toggled with MRU_Use_Current_Window set to 1, the
+" previous buffer should be loaded.
+" ==========================================================================
+func Test_58()
+  let test_name = 'test58'
+  let g:MRU_Use_Current_Window = 1
+  new
+  edit Xfile
+  MRUToggle
+  if @% != MRU_buffer_name || winnr('$') != 2
+    call LogResult(test_name, 'FAIL (1)')
+    return
+  endif
+  MRUToggle
+  if @% != 'Xfile' || winnr('$') != 2
+    call LogResult(test_name, 'FAIL (2)')
+    return
+  endif
+  let g:MRU_Use_Current_Window = 0
+  %bw!
+  call LogResult(test_name, 'pass')
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
