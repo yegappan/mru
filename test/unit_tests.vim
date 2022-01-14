@@ -1737,12 +1737,12 @@ func Test_59()
         \ "source ../plugin/mru.vim",
         \ "call writefile([@#], 'Xoutput')"
         \ ], 'Xscript')
-  !vim -u NONE --noplugin i NONE -N -S Xscript -c "qa!"
+  silent! !vim -u NONE --noplugin i NONE -N -S Xscript -c "qa"
   if !filereadable('Xoutput')
     call LogResult(test_name, 'FAIL (1)')
   else
     let lines = readfile('Xoutput')
-    if len(lines) == 1 && lines[0] == 'Xfirstfile'
+    if len(lines) == 1 && lines[0] =~ 'Xfirstfile$'
       call LogResult(test_name, 'pass')
     else
       call LogResult(test_name, 'FAIL (2)')
