@@ -1715,8 +1715,42 @@ func Test_58()
     return
   endif
   let g:MRU_Use_Current_Window = 0
-  %bw!
+  bw!
   call LogResult(test_name, 'pass')
+endfunc
+
+" ==========================================================================
+" Test59
+" When the MRU_Set_Alternate_File is set to 1, on plugin startup, the
+" alternate file should be set to the first file in the MRU list.
+" ==========================================================================
+func Test_59()
+  if v:version < 802
+    return
+  endif
+  let test_name = 'test59'
+  call writefile([], 'Xfirstfile')
+  edit Xfirstfile
+  call writefile([
+        \ "let MRU_File='vim_mru_file'",
+        \ "let MRU_Set_Alternate_File=1",
+        \ "source ../plugin/mru.vim",
+        \ "call writefile([@#], 'Xoutput')"
+        \ ], 'Xscript')
+  !vim -u NONE --noplugin i NONE -N -S Xscript -c "qa!"
+  if !filereadable('Xoutput')
+    call LogResult(test_name, 'FAIL (1)')
+  else
+    let lines = readfile('Xoutput')
+    if len(lines) == 1 && lines[0] == 'Xfirstfile'
+      call LogResult(test_name, 'pass')
+    else
+      call LogResult(test_name, 'FAIL (2)')
+    endif
+  endif
+  call delete('Xscript')
+  call delete('Xoutput')
+  call delete('Xfirstfile')
 endfunc
 
 " ==========================================================================

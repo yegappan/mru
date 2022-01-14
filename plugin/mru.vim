@@ -117,6 +117,13 @@ if !exists('MRU_FuzzyMatch')
   endif
 endif
 
+" Controls whether the alternate file (:help alternate-file) is set when the
+" plugin is loaded to the first file in the MRU list. Default is to set the
+" alternate file.
+if !exists('MRU_Set_Alternate_File')
+  let MRU_Set_Alternate_File = 0
+endif
+
 " Format of the file names displayed in the MRU window.
 " The default is to display the filename followed by the complete path to the
 " file in parenthesis. This variable controls the expressions used to format
@@ -397,7 +404,7 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
   let esc_fname = s:MRU_escape_filename(a:fname)
 
   if a:open_type ==# 'newwin_horiz'
-    " Edit the file in a new horizontally split window above the previous
+    " Edit the file in a new horizontally split window below the previous
     " window
     wincmd p
     if bufexists(esc_fname)
@@ -406,7 +413,7 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
       exe 'belowright new ' . esc_fname
     endif
   elseif a:open_type ==# 'newwin_vert'
-    " Edit the file in a new vertically split window above the previous
+    " Edit the file in a new vertically split window right of the previous
     " window
     wincmd p
     if bufexists(esc_fname)
@@ -1003,6 +1010,19 @@ endfunc
 
 " Load the MRU list on plugin startup
 call s:MRU_LoadList()
+
+" Set the first entry in the MRU list as the alternate file
+" Credit to Martin Roa Villescas (https://github.com/mroavi) for the patch.
+" bufadd() is available starting from Vim 8.1.1610
+if g:MRU_Set_Alternate_File == 1 && (v:version >= 802 || has('patch-8.1.1610'))
+  if !empty(s:MRU_files)
+    let first_mru_file = s:MRU_files[0]
+    if filereadable(first_mru_file)
+      call bufadd(first_mru_file)
+      let @# = first_mru_file
+    endif
+  endif
+endif
 
 " MRU autocommands {{{1
 " Autocommands to update the most recently used files

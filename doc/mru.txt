@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: August 13, 2021
+Last change: January 13, 2022
 
 ==============================================================================
 						*mru-license*
@@ -272,6 +272,7 @@ file. A summary of these variables is below:
   |MRU_Add_Menu|		add MRU files to the "Recent Files" menu
   |MRU_Max_Menu_Entries|	maximum number of entries in the MRU menu
   |MRU_Max_Submenu_Entries|	maximum number of entries in the MRU submenu
+  |MRU_Set_Alternate_File|	set the alternate file on plugin startup
   |MRU_Filename_Format|		patterns to populate and parse file names in
 				the MRU window
 
@@ -398,6 +399,15 @@ The default setting for this is 10. You can change this to increase the
 number of file names displayed in a single sub-menu:
 >
 	let MRU_Max_Submenu_Entries = 15
+<
+						*MRU_Set_Alternate_File*
+When the MRU plugin starts up, if the MRU_Set_Alternate_File variable is set
+to 1, then it sets the alternate file (|alternate-file|) to the first file in
+the MRU list. You can edit this file using the ":e #" command. By default this
+variable is set to 0. You can enable this behavior, by setting the
+MRU_Set_Alternate_File variable to 1:
+>
+	let MRU_Set_Alternate_File = 1
 <
 						*MRU_Filename_Format*
 In the MRU window, the filenames are displayed in two parts. The first part
