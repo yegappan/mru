@@ -1014,7 +1014,8 @@ call s:MRU_LoadList()
 " Set the first entry in the MRU list as the alternate file
 " Credit to Martin Roa Villescas (https://github.com/mroavi) for the patch.
 " bufadd() is available starting from Vim 8.1.1610
-if g:MRU_Set_Alternate_File == 1 && (v:version >= 802 || has('patch-8.1.1610'))
+if g:MRU_Set_Alternate_File == 1 &&
+      \ (v:version >= 802 || has('patch-8.1.1610') || has('nvim'))
   if !empty(s:MRU_files)
     let first_mru_file = s:MRU_files[0]
     if filereadable(first_mru_file)
