@@ -6,7 +6,7 @@ SETLOCAL
 SET VIMPRG="vim.exe"
 REM SET VIMPRG="C:\Program Files (x86)\vim\vim82\vim.exe"
 REM SET VIMPRG="C:\Program Files (x86)\vim\vim73\vim.exe"
-SET VIM_CMD=%VIMPRG% -N -u NONE -U NONE -i NONE
+SET VIM_CMD=%VIMPRG% -N -u NONE -U NONE -i NONE --not-a-term
 
 %VIM_CMD% -S unit_tests.vim
 
