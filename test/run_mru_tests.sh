@@ -8,6 +8,14 @@ VIM_CMD="$VIMPRG -N -u NONE -U NONE -i NONE --not-a-term"
 $VIM_CMD -S unit_tests.vim
 
 echo "MRU unit test results"
+echo
+
+if [ ! -f results.txt ]
+then
+  echo "ERROR: Test results file 'results.txt' is not found"
+  exit 1
+fi
+
 cat results.txt
 
 echo
