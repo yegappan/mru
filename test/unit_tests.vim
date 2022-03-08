@@ -1754,6 +1754,30 @@ func Test_59()
 endfunc
 
 " ==========================================================================
+" Test60
+" With MRU_Use_Current_Window set to 1, MRU opens a selected file in the
+" current window, even when the file is already open in another window
+" ==========================================================================
+func Test_60()
+  let test_name = 'test60'
+  let g:MRU_Use_Current_Window = 1
+
+  edit file1.txt
+  only
+  below split file2.txt
+
+  MRU
+  call search('file1.txt')
+  exe "normal \<Enter>"
+
+  if winnr() == 2
+    call LogResult(test_name, "pass")
+  else
+    call LogResult(test_name, "FAIL")
+  endif
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
