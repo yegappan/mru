@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         vim:
-          - v8.2.4036
+          - nightly
           - v8.2.0000
           - v8.1.0000
           - v8.0.0000
