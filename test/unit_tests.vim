@@ -1763,6 +1763,7 @@ func Test_60()
   let g:MRU_Use_Current_Window = 1
 
   edit file1.txt
+  let bnum = bufnr()
   only
   below split file2.txt
 
@@ -1770,11 +1771,12 @@ func Test_60()
   call search('file1.txt')
   exe "normal \<Enter>"
 
-  if winnr() == 2
+  if winnr() == 2 && winbufnr(1) == bnum && winbufnr(2) == bnum
     call LogResult(test_name, "pass")
   else
     call LogResult(test_name, "FAIL")
   endif
+  let g:MRU_Use_Current_Window = 0
 endfunc
 
 " ==========================================================================

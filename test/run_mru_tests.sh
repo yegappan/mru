@@ -3,7 +3,6 @@
 # Script to run the unit-tests for the MRU Vim plugin
 
 VIMPRG=${VIMPRG:=/usr/bin/vim}
-#VIMPRG=/home/yega/Documents/vim/vim7.4/vim/src/vim
 VIM_CMD="$VIMPRG -N -u NONE -U NONE -i NONE --not-a-term"
 
 $VIM_CMD -S unit_tests.vim
