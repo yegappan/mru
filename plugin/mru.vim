@@ -1068,6 +1068,10 @@ func s:MRU_FZF_Run() abort
     call s:MRU_Warn_Msg('FZF plugin is not present')
     return
   endif
+
+  " Load the latest MRU list
+  call s:MRU_LoadList()
+
   call fzf#run(fzf#wrap({'source' : s:MRU_files,
     \ 'options' : '--no-sort',
     \ 'sink' : function('s:MRU_FZF_EditFile'),
