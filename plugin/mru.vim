@@ -520,7 +520,24 @@ endfunc
 func! s:MRU_Select_File_Cmd(opt) range abort
   let [edit_type, open_type] = split(a:opt, ',')
 
-  let fnames = getline(a:firstline, a:lastline)
+  if has('patch-8.2.1978') && mode() ==# 'n'
+    let l:firstline = line('.')
+    let l:lastline = l:firstline + v:count
+    if l:lastline > line('$')
+      let l:lastline = line('$')
+    endif
+  elseif has('patch-8.2.1978') && mode() !=# 'n'
+    let l:firstline = line('.')
+    let l:lastline = line('v')
+    if l:firstline > l:lastline
+      let [l:firstline, l:lastline] = [l:lastline, l:firstline]
+    endif
+  else
+    let l:firstline = a:firstline
+    let l:lastline = a:lastline
+  endif
+
+  let fnames = getline(l:firstline, l:lastline)
 
   if g:MRU_Auto_Close == 1 && g:MRU_Use_Current_Window == 0
     " Automatically close the window if the file window is
@@ -540,7 +557,7 @@ func! s:MRU_Select_File_Cmd(opt) range abort
 
     call s:MRU_Window_Edit_File(file, multi, edit_type, open_type)
 
-    if a:firstline != a:lastline
+    if l:firstline != l:lastline
       " Opening multiple files
       let multi = 1
     endif
@@ -688,39 +705,41 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
   set cpoptions&vim
 
   " Create mappings to select and edit a file from the MRU list
-  nnoremap <buffer> <silent> <CR>
-	\ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
-  vnoremap <buffer> <silent> <CR>
-	\ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
-  nnoremap <buffer> <silent> o
-	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
-  vnoremap <buffer> <silent> o
-	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
-  nnoremap <buffer> <silent> <S-CR>
-	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
-  vnoremap <buffer> <silent> <S-CR>
-	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_horiz')<CR>
-  nnoremap <buffer> <silent> O
-	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_vert')<CR>
-  vnoremap <buffer> <silent> O
-	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_vert')<CR>
-  nnoremap <buffer> <silent> t
-	\ :call <SID>MRU_Select_File_Cmd('edit,newtab')<CR>
-  vnoremap <buffer> <silent> t
-	\ :call <SID>MRU_Select_File_Cmd('edit,newtab')<CR>
-  nnoremap <buffer> <silent> v
-	\ :call <SID>MRU_Select_File_Cmd('view,useopen')<CR>
-  nnoremap <buffer> <silent> p
-	\ :call <SID>MRU_Select_File_Cmd('view,preview')<CR>
+  let l:cmd = has('patch-8.2.1978') ? '<cmd>' : ':'
+  let l:silent = has('patch-8.2.1978') ? '' : '<silent> '
+  execute 'nnoremap <buffer> ' . l:silent . '<CR> ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,useopen")<CR>'
+  execute 'vnoremap <buffer> ' . l:silent . '<CR> ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,useopen")<CR>'
+  execute 'nnoremap <buffer> ' . l:silent . 'o ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newwin_horiz")<CR>'
+  execute 'vnoremap <buffer> ' . l:silent . 'o ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newwin_horiz")<CR>'
+  execute 'nnoremap <buffer> ' . l:silent . '<S-CR> ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newwin_horiz")<CR>'
+  execute 'vnoremap <buffer> ' . l:silent . '<S-CR> ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newwin_horiz")<CR>'
+  execute 'nnoremap <buffer> ' . l:silent . 'O ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newwin_vert")<CR>'
+  execute 'vnoremap <buffer> ' . l:silent . 'O ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newwin_vert")<CR>'
+  execute 'nnoremap <buffer> ' . l:silent . 't ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newtab")<CR>'
+  execute 'vnoremap <buffer> ' . l:silent . 't ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,newtab")<CR>'
+  execute 'nnoremap <buffer> ' . l:silent . 'v ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("view,useopen")<CR>'
+  execute 'nnoremap <buffer> ' . l:silent . 'p ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("view,preview")<CR>'
   vnoremap <buffer> <silent> p
 	\ :<C-u>if line("'<") == line("'>")<Bar>
 	\     call <SID>MRU_Select_File_Cmd('open,preview')<Bar>
 	\ else<Bar>
 	\     echoerr "Only a single file can be previewed"<Bar>
 	\ endif<CR>
-  nnoremap <buffer> <silent> u :MRU<CR>
-  nnoremap <buffer> <silent> <2-LeftMouse>
-	\ :call <SID>MRU_Select_File_Cmd('edit,useopen')<CR>
+  execute 'nnoremap <buffer> ' . l:silent . 'u ' . l:cmd . 'MRU<CR>'
+  execute 'nnoremap <buffer> ' . l:silent . '<2-LeftMouse> ' .
+        \ l:cmd . 'call <SID>MRU_Select_File_Cmd("edit,useopen")<CR>'
   nnoremap <buffer> <silent> d
 	\ :<C-U>call <SID>MRU_Delete_From_List()<CR>
   nnoremap <buffer> <silent> q :close<CR>
