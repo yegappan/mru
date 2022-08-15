@@ -106,6 +106,11 @@ if !exists('MRU_Open_File_Use_Tabs')
   let MRU_Open_File_Use_Tabs = 0
 endif
 
+" When opening a file from the MRU list, the file is opened in a new buffer.
+if !exists('MRU_Open_File_Use_Buffers')
+  let MRU_Open_File_Use_Buffers = 0
+endif
+
 " Controls whether fuzzy matching is used for matching a user supplied pattern
 " against the file names in the MRU list.
 if !exists('MRU_FuzzyMatch')
@@ -400,6 +405,7 @@ endfunc
 "                         the previous window.
 "               newwin_horiz - Open the file in a new horizontal window.
 "               newwin_vert - Open the file in a new vertical window.
+"               newbuffer - Open the file in a new buffer.
 "               newtab  - Open the file in a new tab. If the file is already
 "                         opened in a tab, then jump to that tab.
 "               preview - Open the file in the preview window
@@ -424,6 +430,8 @@ func! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type) abort
     else
       exe 'belowright vnew ' . esc_fname
     endif
+  elseif a:open_type ==# 'newbuffer' || g:MRU_Open_File_Use_Buffers
+    exe 'edit ' . esc_fname
   elseif a:open_type ==# 'newtab' || g:MRU_Open_File_Use_Tabs
     call s:MRU_Open_File_In_Tab(a:fname, esc_fname)
   elseif a:open_type ==# 'preview'
@@ -514,6 +522,7 @@ endfunc
 "     'useopen' to open file in the previous window
 "     'newwin_horiz' to open the file in a new horizontal split window
 "     'newwin_vert' to open the file in a new vertical split window.
+"     'newbuffer' to open the file in a new buffer.
 "     'newtab' to open the file in a new tab.
 " If multiple file names are selected using visual mode, then open multiple
 " files (either in split windows or tabs)
@@ -704,6 +713,8 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
 	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_vert')<CR>
   vnoremap <buffer> <silent> O
 	\ :call <SID>MRU_Select_File_Cmd('edit,newwin_vert')<CR>
+  nnoremap <buffer> <silent> b
+	\ :call <SID>MRU_Select_File_Cmd('edit,newbuffer')<CR>
   nnoremap <buffer> <silent> t
 	\ :call <SID>MRU_Select_File_Cmd('edit,newtab')<CR>
   vnoremap <buffer> <silent> t
