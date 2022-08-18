@@ -757,7 +757,9 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
     if g:MRU_FuzzyMatch
       let m = matchfuzzy(s:MRU_files, a:pat)
     else
-      let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
+      " do case insensitive file name comparison
+      let spat = tolower(a:pat)
+      let m = filter(copy(s:MRU_files), 'stridx(tolower(v:val), spat) != -1')
     endif
     if len(m) == 0
       " No match. Try using it as a regular expression
@@ -829,7 +831,9 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
   if g:MRU_FuzzyMatch
     let m = matchfuzzy(s:MRU_files, a:pat)
   else
-    let m = filter(copy(s:MRU_files), 'stridx(v:val, a:pat) != -1')
+    " do case insensitive file name comparison
+    let spat = tolower(a:pat)
+    let m = filter(copy(s:MRU_files), 'stridx(tolower(v:val), spat) != -1')
   endif
   if len(m) > 0
     if len(m) == 1 && !g:MRU_Window_Open_Always

@@ -1737,7 +1737,7 @@ func Test_59()
         \ "source ../plugin/mru.vim",
         \ "call writefile([@#], 'Xoutput')"
         \ ], 'Xscript')
-  silent! !vim -u NONE --noplugin i NONE -N -S Xscript -c "qa"
+  silent! !vim -u NONE --noplugin -i NONE -N -S Xscript -c "qa"
   if !filereadable('Xoutput')
     call LogResult(test_name, 'FAIL (1)')
   else
@@ -1780,6 +1780,49 @@ func Test_60()
 endfunc
 
 " ==========================================================================
+" Test61
+" The :MRU command should do case-insensitive file name comparison
+" Works only in Unix-like systems.
+" ==========================================================================
+func Test_61()
+  if !has('unix')
+    return
+  endif
+  let test_name = 'test61'
+
+  let l = readfile(g:MRU_File)
+  call remove(l, 1, -1)
+  call writefile(l, g:MRU_File)
+  call s:MRU_Test_Add_Files(['/my/home/my1298file',
+        \ '/my/home/mY1298fIlE', '/my/home/MY1298FILE', '/my/home/My1298File'])
+
+  let expected = [
+        \ 'my1298file (/my/home/my1298file)',
+        \ 'mY1298fIlE (/my/home/mY1298fIlE)',
+        \ 'MY1298FILE (/my/home/MY1298FILE)',
+        \ 'My1298File (/my/home/My1298File)'
+        \ ]
+
+  let g:MRU_FuzzyMatch = 0
+
+  try
+    for p in ['my12', 'mY1298', 'MY1298', 'My1298File']
+      exe 'MRU ' . p
+      let lines = getline(1, '$')
+      if lines !=# expected
+        call LogResult(test_name, 'FAIL (' . p . ')')
+        return
+      endif
+      close
+    endfor
+
+    call LogResult(test_name, 'pass')
+  finally
+    let g:MRU_FuzzyMatch = 1
+  endtry
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
@@ -1790,7 +1833,7 @@ call writefile(['#include <stdio.h', 'int main(){}'], 'abc.c')
 call writefile(['#include <stdlib.h', 'int main(){}'], 'def.c')
 
 " Remove the results from the previous test runs
-call delete('results.txt')
+call delete('test.log')
 call delete(g:MRU_File)
 let results = []
 
@@ -1804,11 +1847,12 @@ let s:tests = split(substitute(@q, '\(function\) \(\k*()\)', '\2', 'g'))
 set nomore
 set debug=beep
 for one_test in sort(s:tests)
+  echo 'Executing ' . one_test
   exe 'call ' . one_test
 endfor
 set more
 
-call writefile(results, 'results.txt')
+call writefile(results, 'test.log')
 
 " TODO:
 " Add the following tests:
