@@ -7,7 +7,7 @@ Last change: January 13, 2022
 ==============================================================================
 						*mru-license*
 License: MIT License
-Copyright (c) 2003-2021 Yegappan Lakshmanan
+Copyright (c) 2003-2022 Yegappan Lakshmanan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -64,7 +64,7 @@ using the following steps.
 
 1. Download the mru.zip file from https://github.com/yegappan/mru/releases
 2. Unzip the mru.zip file into the $HOME/.vim directory for Linux/MacOS/Unix
-   systems or the $HOMEPATH/vimfiles directory for MS-Windows.  After this
+   systems or the %HOMEPATH%/vimfiles directory for MS-Windows.  After this
    step, you should have the following files (the directory structure should
    be preserved):
 
@@ -187,7 +187,9 @@ you can specify a pattern to the |:MRU| command. Example: >
 <
 The above command displays only the file names containing the string "mystr"
 in them.  When you specify a partial file name and only one matching filename
-is found, then the |:MRU| command will edit that file.
+is found, then the |:MRU| command will edit that file.  If you are using Vim
+version 8.2.1665 and above, then the MRU plugin will use fuzzy matching to get
+the list of file names matching the supplied string.
 
 The |:MRU| command supports command-line completion of file names from
 the MRU list. You can enter a partial file name and then press <Tab>
@@ -248,7 +250,7 @@ or more file names as argument. Some example uses for this function are below:
     :vimgrep my_text `=MruGetFiles('.java')`
     " add all the .py files in the MRU list to the argument list
     :n `=MruGetFiles('.py')`
-    " Add the files in MRU list to a quickfix list
+    " Create a quickfix list with the files in MRU list
     :call setqflist([], ' ', {'efm' : '%f', 'lines' : MruGetFiles()})
 <
 ==============================================================================

@@ -1,8 +1,8 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.10.2
-" Last Modified: August 14, 2021
-" Copyright: Copyright (C) 2003-2021 Yegappan Lakshmanan
+" Last Modified: August 17, 2022
+" Copyright: Copyright (C) 2003-2022 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
 "            notice is copied with it. Like anything else that's free,
