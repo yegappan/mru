@@ -23,26 +23,82 @@ set nohidden
 
 source ../plugin/mru.vim
 
+let s:builtin_assert = 0
+if exists('*assert_match')
+  " Vim supports builtin assert_xxx() functions
+  let s:builtin_assert = 1
+endif
+
 " Function to log test results
 func! LogResult(test, result)
   call add(g:results, a:test . ': ' . a:result)
 endfunc
+
+let s:errors = []
+
+func! MRU_assert_compare(match, expected, actual, ...)
+  let msg = ''
+  if a:0 == 1
+    let msg = a:1
+  endif
+  if a:match
+    let passed = a:actual =~# a:expected
+  else
+    let passed = a:actual ==# a:expected
+  endif
+  if !passed
+    let t = ''
+    if msg != ''
+      let t = msg . ': '
+    endif
+    if a:match
+      let t = t . 'Pattern ' . string(a:expected) . ' does not match ' .
+            \ string(a:actual)
+    else
+      let t = t . 'Expected ' . string(a:expected) . ', but got ' .
+            \ string(a:actual)
+    endif
+    call add(s:errors, t)
+  endif
+endfunc
+
+func! MRU_assert_true(result, ...)
+  let msg = ''
+  if a:0 == 1
+    let msg = a:1
+  endif
+  if !a:result
+    let t = ''
+    if msg != ''
+      let t = msg . ': '
+    endif
+    let t = t . "Expected 'True' but got " . string(a:result)
+    call add(s:errors, t)
+  endif
+endfunc
+
+if s:builtin_assert
+  " Vim has support for the assert_xxx() functions
+  let s:Assert_equal = function('assert_equal')
+  let s:Assert_match = function('assert_match')
+  let s:Assert_true = function('assert_true')
+else
+  " Vim doesn't have support for the assert_xxx() functions
+  let s:Assert_equal = function('MRU_assert_compare', [0])
+  let s:Assert_match = function('MRU_assert_compare', [1])
+  let s:Assert_true = function('MRU_assert_true')
+endif
 
 " ==========================================================================
 " Test1
 " When the MRU list is empty, invoking the MRU command should return an error
 " ==========================================================================
 func Test_01()
-  let test_name = 'test1'
-
   redir => msg
   MRU
   redir END
-  if msg =~# "MRU file list is empty"
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+
+  call s:Assert_match('MRU file list is empty', msg)
 endfunc
 
 " ==========================================================================
@@ -51,8 +107,6 @@ endfunc
 " Open the MRU window when the window is already opened.
 " ==========================================================================
 func Test_02()
-  let test_name = 'test2'
-
   edit file1.txt
   edit file2.txt
   edit file3.txt
@@ -62,12 +116,10 @@ func Test_02()
   MRU
   MRU
 
-  let l = getline(1, "$")
-  if l[0] =~# "file1.txt" && l[1] =~# "file2.txt" && l[2] =~# "file3.txt"
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  let l = getline(1, '$')
+  call s:Assert_match('file1.txt', l[0])
+  call s:Assert_match('file2.txt', l[1])
+  call s:Assert_match('file3.txt', l[2])
 endfunc
 
 " ==========================================================================
@@ -75,24 +127,16 @@ endfunc
 " Select a file from the MRU window and check whether it is opened
 " ==========================================================================
 func Test_03()
-  let test_name = 'test3'
-
   " Go to the last but one line
   $
 
   " Select the last file in the MRU window
   exe "normal \<Enter>"
 
-  if fnamemodify(@%, ':p:t') !=# 'file3.txt'
-    call LogResult(test_name, "FAIL (1)")
-  else
-    " Make sure the MRU window is closed
-    if bufwinnr(g:MRU_buffer_name) == -1
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, "FAIL (2)")
-    endif
-  endif
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
+
+  " Make sure the MRU window is closed
+  call s:Assert_equal(-1, bufwinnr(g:MRU_buffer_name))
 endfunc
 
 " ==========================================================================
@@ -100,8 +144,6 @@ endfunc
 " MRU opens a selected file in the previous/last window
 " ==========================================================================
 func Test_04()
-  let test_name = 'test4'
-
   " Edit a file and then open a new window, open the MRU window and select the
   " file
   split file1.txt
@@ -112,11 +154,8 @@ func Test_04()
   call search('file2.txt')
   exe "normal \<Enter>"
 
-  if winnr() == 2
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(2, winnr())
+  close
 endfunc
 
 " ==========================================================================
@@ -124,8 +163,6 @@ endfunc
 " MRU opens a selected file in the same window if the file is already opened
 " ==========================================================================
 func Test_05()
-  let test_name = 'test5'
-
   edit file1.txt
   only
   below split file2.txt
@@ -135,25 +172,20 @@ func Test_05()
   call search('file1.txt')
   exe "normal \<Enter>"
 
-  if winnr() != 1 || fnamemodify(@%, ':p:t') !=# 'file1.txt'
-    call LogResult(test_name, "FAIL (1)")
-  else
-    MRU
-    call search('file2.txt')
-    exe "normal \<Enter>"
-    if winnr() != 2 || fnamemodify(@%, ':p:t') !=# 'file2.txt'
-      call LogResult(test_name, "FAIL (2)")
-    else
-      MRU
-      call search('file3.txt')
-      exe "normal \<Enter>"
-      if winnr() != 3 || fnamemodify(@%, ':p:t') !=# 'file3.txt'
-        call LogResult(test_name, "FAIL (3)")
-      else
-        call LogResult(test_name, 'pass')
-      endif
-    endif
-  endif
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
+
+  MRU
+  call search('file2.txt')
+  exe "normal \<Enter>"
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+
+  MRU
+  call search('file3.txt')
+  exe "normal \<Enter>"
+  call s:Assert_equal(3, winnr())
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
 endfunc
 
 " ==========================================================================
@@ -161,7 +193,6 @@ endfunc
 " MRU opens a file selected with 'o' command in a new window
 " ==========================================================================
 func Test_06()
-  let test_name = 'test6'
   enew | only
 
   edit file1.txt
@@ -170,11 +201,8 @@ func Test_06()
   MRU
   normal o
 
-  if winnr() == 3 && fnamemodify(@%, ':p:t') ==# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(3, winnr())
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
 endfunc
 
 " ==========================================================================
@@ -183,21 +211,15 @@ endfunc
 " modified.
 " ==========================================================================
 func Test_07()
-  let test_name = 'test7'
   enew | only
 
-  insert
-  MRU plugin test
-.
+  call setline(1, ['MRU plugin test'])
   MRU
   call search('file3.txt')
   exe "normal \<Enter>"
-  if winnr() == 1 && winnr('$') == 2 &&
-        \ fnamemodify(@%, ':p:t') ==# 'file3.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
 
   " Discard changes in the new buffer
   wincmd b
@@ -211,26 +233,20 @@ endfunc
 " window.
 " ==========================================================================
 func Test_08()
-  let test_name = 'test8'
   enew | only
 
   MRU
   call search('file1.txt')
   normal v
-  let r1 = &readonly
+  call s:Assert_true(&readonly)
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  let r2 = &readonly
+  call s:Assert_true(!&readonly)
   MRU
   call search('file1.txt')
   exe "normal \<Enter>"
-  let r3 = &readonly
-  if r1 == 1 && r2 == 0 && r3 == 1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_true(&readonly)
 endfunc
 
 " ==========================================================================
@@ -238,24 +254,18 @@ endfunc
 " Use 'O' in the MRU window to open a file in a vertically split window
 " ==========================================================================
 func Test_09()
-  let test_name = 'test9'
   enew | only
 
   edit file1.txt
   MRU
   call search('file2.txt')
   normal O
-  let b1 = @%
+  call s:Assert_equal('file2.txt', @%)
   wincmd h
-  let b2 = @%
+  call s:Assert_equal('file1.txt', @%)
   wincmd l
-  let b3 = @%
-  if winnr('$') == 2 && b1 ==# 'file2.txt' &&
-        \ b2 ==# 'file1.txt' && b3 ==# 'file2.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal('file2.txt', @%)
+  call s:Assert_equal(2, winnr('$'))
 endfunc
 
 " ==========================================================================
@@ -263,7 +273,6 @@ endfunc
 " Use 'p' in the MRU window to open a file in the preview window
 " ==========================================================================
 func Test_10()
-  let test_name = 'test10'
   enew | only
 
   MRU
@@ -272,11 +281,9 @@ func Test_10()
   wincmd P
   let p1 = &previewwindow
   let b1 = @%
-  if winnr('$') == 2 && &previewwindow && @% =~# 'file3.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_true(&previewwindow)
+  call s:Assert_match('file3.txt', @%)
   pclose
 endfunc
 
@@ -286,7 +293,6 @@ endfunc
 " is opened at the end
 " ==========================================================================
 func Test_11()
-  let test_name = 'test11'
   enew | only
 
   edit a1.txt
@@ -297,13 +303,8 @@ func Test_11()
   MRU
   call search('file3.txt')
   normal t
-  if fnamemodify(@%, ':p:t') ==# 'file3.txt' && tabpagenr() == 5
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-    call LogResult(test_name, "file = " . fnamemodify(@%, ':p:t'))
-    call LogResult(test_name, "tab page = " . tabpagenr())
-  endif
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
+  call s:Assert_equal(5, tabpagenr())
 
   tabonly
 endfunc
@@ -313,16 +314,11 @@ endfunc
 " The 'q' command closes the MRU window
 " ==========================================================================
 func Test_12()
-  let test_name = 'test12'
   enew | only
 
   MRU
   normal q
-  if bufwinnr(g:MRU_buffer_name) == -1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(-1, bufwinnr(g:MRU_buffer_name))
 endfunc
 
 " ==========================================================================
@@ -331,20 +327,16 @@ endfunc
 " preview window
 " ==========================================================================
 func Test_13()
-  let test_name = 'test13'
   enew | only
 
   setlocal previewwindow
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  if winnr() == 1 && winnr('$') == 2 &&
-        \ &previewwindow == 0 &&
-        \ fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_true(!&previewwindow)
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
 
   " Close the preview window created by this test
   new
@@ -357,20 +349,16 @@ endfunc
 " a special buffer (used by some other plugin)
 " ==========================================================================
 func Test_14()
-  let test_name = 'test14'
   enew | only
 
   setlocal buftype=nofile
   MRU
   call search('file3.txt')
   exe "normal \<Enter>"
-  if winnr() == 1 && winnr('$') == 2 &&
-        \ &buftype == '' &&
-        \ fnamemodify(@%, ':p:t') ==# 'file3.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal('', &buftype)
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
 
   " Discard the special buffer
   enew
@@ -382,7 +370,6 @@ endfunc
 " then jump to that tab (instead of opening a new tab)
 " ==========================================================================
 func Test_15()
-  let test_name = 'test15'
   enew | only
 
   " Open the test files in the middle window with empty windows at the top and
@@ -400,32 +387,24 @@ func Test_15()
 
   MRU
   call search('file3.txt')
-  exe "normal t"
-  if tabpagenr() != 3
-        \ || fnamemodify(@%, ':p:t') !=# 'file3.txt'
-        \ || winnr() != 2
-    call LogResult(test_name, "FAIL (1)")
-  else
-    MRU
-    call search('file1.txt')
-    exe "normal t"
-    if tabpagenr() != 1
-          \ || fnamemodify(@%, ':p:t') !=# 'file1.txt'
-          \ || winnr() != 2
-      call LogResult(test_name, "FAIL (2)")
-    else
-      MRU
-      call search('file2.txt')
-      exe "normal t"
-      if tabpagenr() != 2
-            \ || fnamemodify(@%, ':p:t') !=# 'file2.txt'
-            \ || winnr() != 2
-        call LogResult(test_name, "FAIL (3)")
-      else
-        call LogResult(test_name, 'pass')
-      endif
-    endif
-  endif
+  exe 'normal t'
+  call s:Assert_equal(3, tabpagenr())
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
+  call s:Assert_equal(2, winnr())
+
+  MRU
+  call search('file1.txt')
+  exe 'normal t'
+  call s:Assert_equal(1, tabpagenr())
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
+  call s:Assert_equal(2, winnr())
+
+  MRU
+  call search('file2.txt')
+  exe 'normal t'
+  call s:Assert_equal(2, tabpagenr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  call s:Assert_equal(2, winnr())
 
   " Close all the other tabs
   tabonly
@@ -439,7 +418,6 @@ endfunc
 " count.  Each file should be opened in a separate window.
 " ==========================================================================
 func Test_16()
-  let test_name = 'test16'
   enew | only
 
   edit file3.txt
@@ -448,35 +426,19 @@ func Test_16()
   enew
   MRU
   exe "normal 3\<Enter>"
-  if winnr('$') == 3 &&
-        \ bufwinnr('file3.txt') == 1 &&
-        \ bufwinnr('file2.txt') == 2 &&
-        \ bufwinnr('file1.txt') == 3
-    let test_result = 'pass'
-  else
-    let test_result = 'FAIL'
-  endif
+  call s:Assert_equal(3, winnr('$'))
+  call s:Assert_equal(1, bufwinnr('file3.txt'))
+  call s:Assert_equal(2, bufwinnr('file2.txt'))
+  call s:Assert_equal(3, bufwinnr('file1.txt'))
 
   only | enew
 
-  if test_result == 'pass'
-    MRU
-    exe "normal V2j\<Enter>"
-    if winnr('$') == 3 &&
-          \ bufwinnr('file1.txt') == 1 &&
-          \ bufwinnr('file2.txt') == 2 &&
-          \ bufwinnr('file3.txt') == 3
-      let test_result = 'pass'
-    else
-      let test_result = 'FAIL'
-    endif
-  endif
-
-  if test_result == 'pass'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  MRU
+  exe "normal V2j\<Enter>"
+  call s:Assert_equal(3, winnr('$'))
+  call s:Assert_equal(1, bufwinnr('file1.txt'))
+  call s:Assert_equal(2, bufwinnr('file2.txt'))
+  call s:Assert_equal(3, bufwinnr('file3.txt'))
 endfunc
 
 " ==========================================================================
@@ -484,28 +446,19 @@ endfunc
 " When the MRU list is updated, the MRU file also should updated.
 " ==========================================================================
 func Test_17()
-  let test_name = 'test17'
   enew | only
 
   edit file1.txt
   let l = readfile(g:MRU_File)
-  if l[1] =~# 'file1.txt'
-    edit file2.txt
-    let l = readfile(g:MRU_File)
-    if l[1] =~# 'file2.txt'
-      edit file3.txt
-      let l = readfile(g:MRU_File)
-      if l[1] =~# 'file3.txt'
-        call LogResult(test_name, 'pass')
-      else
-        call LogResult(test_name, "FAIL (3)")
-      endif
-    else
-      call LogResult(test_name, "FAIL (2)")
-    endif
-  else
-    call LogResult(test_name, "FAIL (1)")
-  endif
+  call s:Assert_match('file1.txt', l[1])
+
+  edit file2.txt
+  let l = readfile(g:MRU_File)
+  call s:Assert_match('file2.txt', l[1])
+
+  edit file3.txt
+  let l = readfile(g:MRU_File)
+  call s:Assert_match('file3.txt', l[1])
 endfunc
 
 " MRU_Test_Add_Files
@@ -522,20 +475,15 @@ endfunc
 " should update the MRU list
 " ==========================================================================
 func Test_18()
-  let test_name = 'test18'
   enew | only
 
   call s:MRU_Test_Add_Files(['/software/editors/vim',
         \ '/software/editors/emacs',
         \ '/software/editors/nano'])
   MRU
-  if getline(1) ==# 'vim (/software/editors/vim)'
-        \ && getline(2) ==# 'emacs (/software/editors/emacs)'
-        \ && getline(3) ==# 'nano (/software/editors/nano)'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal('vim (/software/editors/vim)', getline(1))
+  call s:Assert_equal('emacs (/software/editors/emacs)', getline(2))
+  call s:Assert_equal('nano (/software/editors/nano)', getline(3))
 
   " Close the MRU window
   close
@@ -547,7 +495,6 @@ endfunc
 " from the current instance should be merged with that list
 " ==========================================================================
 func Test_19()
-  let test_name = 'test19'
   enew | only
 
   " Remove all the files from the MRU file
@@ -561,16 +508,12 @@ func Test_19()
   edit file3.txt
   call s:MRU_Test_Add_Files(['/software/os/osx'])
   MRU
-  if getline(1) ==# 'osx (/software/os/osx)'
-        \ && getline(2) =~# 'file3.txt'
-        \ && getline(3) ==# 'windows (/software/os/windows)'
-        \ && getline(4) =~# 'file2.txt'
-        \ && getline(5) ==# 'unix (/software/os/unix)'
-        \ && getline(6) =~# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal('osx (/software/os/osx)', getline(1))
+  call s:Assert_match('file3.txt', getline(2))
+  call s:Assert_equal('windows (/software/os/windows)', getline(3))
+  call s:Assert_match('file2.txt', getline(4))
+  call s:Assert_equal('unix (/software/os/unix)', getline(5))
+  call s:Assert_match('file1.txt', getline(6))
   close
 endfunc
 
@@ -580,7 +523,6 @@ endfunc
 " trimmed. The last entries should be removed.
 " ==========================================================================
 func Test_20()
-  let test_name = 'test20'
   enew | only
 
   "  Create a MRU list with MRU_Max_Entries
@@ -598,26 +540,21 @@ func Test_20()
   enew
   edit file1.txt
   let l = readfile(g:MRU_File)
-  if len(l) == (g:MRU_Max_Entries + 1) &&
-        \ l[g:MRU_Max_Entries] != '/usr/share/mru_test/mru_file9.abc'
-    call LogResult(test_name, "FAIL (1)")
-  else
-    edit file2.txt
-    let l = readfile(g:MRU_File)
-    if len(l) == (g:MRU_Max_Entries + 1) &&
-          \ l[g:MRU_Max_Entries] != '/usr/share/mru_test/mru_file8.abc'
-      call LogResult(test_name, "FAIL (2)")
-    else
-      edit file3.txt
-      let l = readfile(g:MRU_File)
-      if len(l) == (g:MRU_Max_Entries + 1) &&
-            \ l[g:MRU_Max_Entries] != '/usr/share/mru_test/mru_file7.abc'
-        call LogResult(test_name, "FAIL (3)")
-      else
-        call LogResult(test_name, 'pass')
-      endif
-    endif
-  endif
+  call s:Assert_equal((g:MRU_Max_Entries + 1), len(l))
+  call s:Assert_equal('/usr/share/mru_test/mru_file9.abc',
+        \ l[g:MRU_Max_Entries])
+
+  edit file2.txt
+  let l = readfile(g:MRU_File)
+  call s:Assert_equal((g:MRU_Max_Entries + 1), len(l))
+  call s:Assert_equal('/usr/share/mru_test/mru_file8.abc',
+        \ l[g:MRU_Max_Entries])
+
+  edit file3.txt
+  let l = readfile(g:MRU_File)
+  call s:Assert_equal((g:MRU_Max_Entries + 1), len(l))
+  call s:Assert_equal('/usr/share/mru_test/mru_file7.abc',
+        \ l[g:MRU_Max_Entries])
 endfunc
 
 " ==========================================================================
@@ -626,19 +563,14 @@ endfunc
 " command, it should edit the file.
 " ==========================================================================
 func Test_21()
-  let test_name = 'test21'
   enew | only
-
   edit file1.txt
   edit file2.txt
   edit file3.txt
   enew
   MRU file2.txt
-  if fnamemodify(@%, ':p:t') ==# 'file2.txt' && winnr('$') == 1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  call s:Assert_equal(1, winnr('$'))
 endfunc
 
 " ==========================================================================
@@ -648,24 +580,18 @@ endfunc
 " filenames
 " ==========================================================================
 func Test_22()
-  let test_name = 'test22'
   enew | only
-
   edit file1.txt
   edit file2.txt
   edit file3.txt
   only
   MRU file.*
-  if @% != g:MRU_buffer_name
-    call LogResult(test_name, 'FAIL')
-  else
-    let l = getline(1, "$")
-    if l[0] =~# "file3.txt" && l[1] =~# "file2.txt" && l[2] =~# "file1.txt"
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL')
-    endif
-  endif
+  call s:Assert_equal(g:MRU_buffer_name, @%)
+
+  let l = getline(1, '$')
+  call s:Assert_match('file3.txt', l[0])
+  call s:Assert_match('file2.txt', l[1])
+  call s:Assert_match('file1.txt', l[2])
   close
 endfunc
 
@@ -676,25 +602,18 @@ endfunc
 " filenames
 " ==========================================================================
 func Test_23()
-  let test_name = 'test23'
   enew | only
-
   let g:MRU_FuzzyMatch = 0
   edit file1.txt
   edit file2.txt
   edit file3.txt
   only
   MRU file
-  if @% != g:MRU_buffer_name
-    call LogResult(test_name, 'FAIL')
-  else
-    let l = getline(1, "$")
-    if l[0] =~# "file3.txt" && l[1] =~# "file2.txt" && l[2] =~# "file1.txt"
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL')
-    endif
-  endif
+  call s:Assert_equal(g:MRU_buffer_name, @%)
+  let l = getline(1, '$')
+  call s:Assert_match('file3.txt' , l[0])
+  call s:Assert_match('file2.txt' , l[1])
+  call s:Assert_match('file1.txt' , l[2])
   close
 endfunc
 
@@ -704,19 +623,13 @@ endfunc
 " message should be displayed.
 " ==========================================================================
 func Test_24()
-  let test_name = 'test24'
-
   let g:MRU_FuzzyMatch = 0
   redir => msg
   MRU nonexistingfile.txt
   redir END
-  if @% == g:MRU_buffer_name ||
-        \ msg !~# "MRU file list doesn't contain files " .
-        \ "matching nonexistingfile.txt"
-    call LogResult(test_name, 'FAIL')
-  else
-    call LogResult(test_name, 'pass')
-  endif
+  call s:Assert_true(g:MRU_buffer_name !=? @%)
+  call s:Assert_match("MRU file list doesn't contain files " .
+        \ 'matching nonexistingfile.txt', msg)
 endfunc
 
 " ==========================================================================
@@ -725,20 +638,15 @@ endfunc
 " name to the MRU command and complete the filenames.
 " ==========================================================================
 func Test_25()
-  let test_name = 'test25'
   enew | only
-
   edit file1.txt
   edit file2.txt
   edit file3.txt
   exe 'normal! :MRU file' . "\<C-A>" . "\<Home>let m='\<End>'\<CR>"
   let fnames = split(m)
-  if fnames[1] =~# 'file3.txt' && fnames[2] =~# 'file2.txt' &&
-        \ fnames[3] =~# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_match('file3.txt', fnames[1])
+  call s:Assert_match('file2.txt', fnames[2])
+  call s:Assert_match('file1.txt', fnames[3])
 endfunc
 
 " ==========================================================================
@@ -747,22 +655,16 @@ endfunc
 " any text should return the entire MRU list.
 " ==========================================================================
 func Test_26()
-  let test_name = 'test26'
   enew | only
-
   call delete(g:MRU_File)
   edit file1.txt
   edit file2.txt
   edit file3.txt
-
   exe 'normal! :MRU ' . "\<C-A>" . "\<Home>let m='\<End>'\<CR>"
   let fnames = split(m)
-  if fnames[1] =~# 'file3.txt' && fnames[2] =~# 'file2.txt' &&
-        \ fnames[3] =~# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_match('file3.txt', fnames[1])
+  call s:Assert_match('file2.txt', fnames[2])
+  call s:Assert_match('file1.txt', fnames[3])
 endfunc
 
 " ==========================================================================
@@ -771,22 +673,16 @@ endfunc
 " file in a new window (if the 'hidden' option is not set)
 " ==========================================================================
 func Test_27()
-  let test_name = 'test27'
   enew | only
-
   edit file1.txt
   edit file2.txt
   call append(line('$'), 'Temporary changes to buffer')
   MRU
   call search('file1.txt')
   exe "normal \<Enter>"
-  if winnr() == 1 && winnr('$') == 2 &&
-        \ fnamemodify(@%, ':p:t') ==# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
-
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
   close
   edit!
 endfunc
@@ -797,24 +693,16 @@ endfunc
 " set, then MRU should open a selected file in the current  window
 " ==========================================================================
 func Test_28()
-  let test_name = 'test28'
   enew | only
-
   edit file2.txt
   edit file1.txt
   call append(line('$'), 'Temporary changes to buffer')
   set hidden
-
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  if winnr('$') == 1 &&
-        \ fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
-
+  call s:Assert_equal(1, winnr('$'))
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
   edit file1.txt
   edit!
   set nohidden
@@ -827,23 +715,19 @@ endfunc
 " present in the MRU list, then it is moved to the top of the list.
 " ==========================================================================
 func Test_29()
-  let test_name = 'test29'
   enew | only
-
   edit file1.txt
   let f1 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('file1.txt', f1[1])
   edit file2.txt
   let f2 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('file2.txt', f2[1])
   edit file3.txt
   let f3 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('file3.txt', f3[1])
   edit file1.txt
   let f4 = readfile(g:MRU_File, '', 2)
-  if f1[1] =~# 'file1.txt' && f2[1] =~# 'file2.txt' && f3[1] =~# 'file3.txt' &&
-        \ f4[1] =~# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_match('file1.txt', f4[1])
 endfunc
 
 " ==========================================================================
@@ -852,22 +736,18 @@ endfunc
 " variable should be added to the MRU list.
 " ==========================================================================
 func Test_30()
-  let test_name = 'test30'
   enew | only
-
   edit file1.txt
   let g:MRU_Include_Files='\.c'
   edit abc.c
   let f1 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('abc.c', f1[1])
   edit file1.txt
   let f2 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('abc.c', f2[1])
   edit def.c
   let f3 = readfile(g:MRU_File, '', 2)
-  if f1[1] =~# 'abc.c' && f2[1] =~# 'abc.c' && f3[1] =~# 'def.c'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_match('def.c', f3[1])
   let g:MRU_Include_Files=''
 endfunc
 
@@ -877,27 +757,23 @@ endfunc
 " variable should not be added to the MRU list.
 " ==========================================================================
 func Test_31()
-  let test_name = 'test31'
   enew | only
-
   let g:MRU_Exclude_Files='\.txt'
   edit abc.c
   let f1 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('abc.c', f1[1])
   edit file1.txt
   edit file2.txt
   edit file3.txt
   let f2 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('abc.c', f2[1])
   edit def.c
   let f3 = readfile(g:MRU_File, '', 2)
+  call s:Assert_match('def.c', f3[1])
   let g:MRU_Exclude_Files=''
   edit file1.txt
   let f4 = readfile(g:MRU_File, '', 2)
-  if f1[1] =~# 'abc.c' && f2[1] =~# 'abc.c' && f3[1] =~# 'def.c' &&
-        \ f4[1] =~# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_match('file1.txt', f4[1])
 endfunc
 
 " ==========================================================================
@@ -906,24 +782,19 @@ endfunc
 " window should be refreshed.
 " ==========================================================================
 func Test_32()
-  let test_name = 'test32'
   enew | only
-
   MRU
   wincmd p
   edit abc.c
   wincmd p
   let s1 = getline(1)
+  call s:Assert_match('abc.c', s1)
   wincmd p
   edit file1.txt
   wincmd p
   let s2 = getline(1)
+  call s:Assert_match('file1.txt', s2)
   close
-  if s1 =~# 'abc.c' && s2 =~# 'file1.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
 endfunc
 
 " ==========================================================================
@@ -934,17 +805,12 @@ endfunc
 " the MRU buffer with the selected file.
 " ==========================================================================
 func Test_33()
-  let test_name = 'test33'
   enew | only
-
   edit file1.txt
   let g:MRU_Use_Current_Window=1
   MRU
-  if winnr('$') == 1 && @% == g:MRU_buffer_name
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(1, winnr('$'))
+  call s:Assert_equal(g:MRU_buffer_name, @%)
   let g:MRU_Use_Current_Window=0
 endfunc
 
@@ -954,23 +820,17 @@ endfunc
 " should replace the MRU buffer with the selected file.
 " ==========================================================================
 func Test_34()
-  let test_name = 'test34'
   enew | only
-
   let g:MRU_Use_Current_Window=1
   let w:marker=1
   MRU
-  if winnr('$') == 1 && w:marker && @% == g:MRU_buffer_name
-    call search('file2.txt')
-    exe "normal \<Enter>"
-    if winnr('$') == 1 && w:marker && @% == 'file2.txt'
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL')
-    endif
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(1, winnr('$'))
+  call s:Assert_equal(g:MRU_buffer_name, @%)
+  call search('file2.txt')
+  exe "normal \<Enter>"
+  call s:Assert_equal(1, winnr('$'))
+  call s:Assert_equal(1, w:marker)
+  call s:Assert_equal('file2.txt', @%)
   unlet w:marker
   let g:MRU_Use_Current_Window=0
 endfunc
@@ -981,17 +841,13 @@ endfunc
 " changes, then the MRU window should be opened in a split window
 " ==========================================================================
 func Test_35()
-  let test_name = 'test35'
   enew | only
-
   let g:MRU_Use_Current_Window=1
   set modified
   MRU
-  if winnr('$') == 2 && winnr() == 2 && @% == g:MRU_buffer_name
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal(g:MRU_buffer_name, @%)
   close
   set nomodified
   let g:MRU_Use_Current_Window=0
@@ -1004,9 +860,7 @@ endfunc
 " close when a file is selected. The MRU window should be kept open.
 " ==========================================================================
 func Test_36()
-  let test_name = 'test36'
   enew | only
-
   let g:MRU_Auto_Close=0
   new
   MRU
@@ -1016,15 +870,10 @@ func Test_36()
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  if winnr('$') == 3 &&
-        \ bufwinnr('file1.txt') == 1 &&
-        \ bufwinnr('file2.txt') == 2 &&
-        \ bufwinnr(g:MRU_buffer_name) == 3
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
-
+  call s:Assert_equal(3, winnr('$'))
+  call s:Assert_equal(1, bufwinnr('file1.txt'))
+  call s:Assert_equal(2, bufwinnr('file2.txt'))
+  call s:Assert_equal(3, bufwinnr(g:MRU_buffer_name))
   wincmd b
   close
   let g:MRU_Auto_Close=1
@@ -1038,9 +887,7 @@ endfunc
 " to that tab.
 " ==========================================================================
 func Test_37()
-  let test_name = 'test37'
   enew | only
-
   let g:MRU_Open_File_Use_Tabs=1
   edit file1.txt
   MRU
@@ -1050,24 +897,16 @@ func Test_37()
   call search('file3.txt')
   exe "normal \<Enter>"
   MRU file1.txt
-  let t1 = tabpagenr()
+  call s:Assert_equal(1, tabpagenr())
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  let t2 = tabpagenr()
+  call s:Assert_equal(2, tabpagenr())
   MRU
   call search('file3.txt')
   exe "normal \<Enter>"
-  let t3 = tabpagenr()
-
+  call s:Assert_equal(3, tabpagenr())
   tabonly | enew
-
-  if t1 == 1 && t2 == 2 && t3 == 3
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
-
   let g:MRU_Open_File_Use_Tabs=0
 endfunc
 
@@ -1079,42 +918,23 @@ endfunc
 " window.
 " ==========================================================================
 func Test_38()
-  let test_name = 'test38'
   enew | only
 
   edit file3.txt
   enew
-
   let g:MRU_Window_Open_Always=1
   MRU file3.txt
-  if winnr('$') == 2 &&
-        \ bufwinnr(g:MRU_buffer_name) == 2
-    let test_result = 'pass'
-  else
-    let test_result = 'FAIL'
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(2, bufwinnr(g:MRU_buffer_name))
   close
 
   enew | only
-
-  if test_result == 'pass'
-    let g:MRU_Window_Open_Always=0
-    MRU file3.txt
-    if winnr('$') == 1 &&
-          \ bufwinnr('file3.txt') == 1
-      let test_result = 'pass'
-    else
-      let test_result = 'FAIL'
-    endif
-  endif
+  let g:MRU_Window_Open_Always=0
+  MRU file3.txt
+  call s:Assert_equal(1, winnr('$'))
+  call s:Assert_equal(1, bufwinnr('file3.txt'))
 
   let g:MRU_Window_Open_Always=0
-
-  if test_result == 'pass'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
 endfunc
 
 " ==========================================================================
@@ -1123,7 +943,6 @@ endfunc
 " should open the file in the current tabpage.
 " ==========================================================================
 func Test_39()
-  let test_name = 'test39'
   enew | only | tabonly
   tabnew
   tabnew
@@ -1131,14 +950,8 @@ func Test_39()
   MRU
   call search('file2.txt')
   normal t
-  if fnamemodify(@%, ':p:t') ==# 'file2.txt' && tabpagenr() == 2
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-    call LogResult(test_name, "file = " . fnamemodify(@%, ':p:t'))
-    call LogResult(test_name, "tab page = " . tabpagenr())
-  endif
-
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  call s:Assert_equal(2, tabpagenr())
   tabonly
 endfunc
 
@@ -1148,7 +961,6 @@ endfunc
 " from the MRU list
 " ==========================================================================
 func Test_40()
-  let test_name = 'test40'
   edit file2.txt
   enew
   MRU
@@ -1156,11 +968,7 @@ func Test_40()
   normal d
   close
   let l = readfile(g:MRU_File)
-  if match(l, 'file2.txt') == -1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_true(match(l, 'file2.txt') == -1)
 endfunc
 
 " ==========================================================================
@@ -1168,16 +976,11 @@ endfunc
 " Running the :vimgrep command should not add the files to the MRU list
 " ==========================================================================
 func Test_41()
-  let test_name = 'test41'
   call writefile(['bright'], 'dummy1.txt')
   call writefile(['bright'], 'dummy2.txt')
   vimgrep /bright/j dummy*
   let l = readfile(g:MRU_File)
-  if match(l, 'dummy') == -1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(-1, match(l, 'dummy'))
   call delete('dummy1.txt')
   call delete('dummy2.txt')
 endfunc
@@ -1191,28 +994,18 @@ func Test_42()
     " The <mods> command modifier is supported only by Vim 8.0 and above
     return
   endif
-  let test_name = 'test42'
   enew | only
   topleft MRU
-  if winnr() == 1 && winnr('$') == 2
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal(2, winnr('$'))
   enew | only
   botright MRU
-  if winnr() == 2 && winnr('$') == 2
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal(2, winnr('$'))
   enew | only
   botright MRU
-  if winnr() == 2 && winnr('$') == 2
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal(2, winnr('$'))
   enew | only
 endfunc
 
@@ -1222,28 +1015,20 @@ endfunc
 " the file (if it is already opened).
 " ==========================================================================
 func Test_43()
-  let test_name = 'test43'
   only
   edit file3.txt
   below split file2.txt
   below split file1.txt
   wincmd t
   MRU file1.txt
-  if winnr() != 3 || fnamemodify(@%, ':p:t') !=# 'file1.txt'
-    call LogResult(test_name, 'FAIL (1)')
-  else
-    MRU file2.txt
-    if winnr() != 2 && fnamemodify(@%, ':p:t') !=# 'file2.txt'
-      call LogResult(test_name, 'FAIL (2)')
-    else
-      MRU file3.txt
-      if winnr() != 1 && fnamemodify(@%, ':p:t') !=# 'file3.txt'
-        call LogResult(test_name, 'FAIL (3)')
-      else
-        call LogResult(test_name, 'pass')
-      endif
-    endif
-  endif
+  call s:Assert_equal(3, winnr())
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
+  MRU file2.txt
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  MRU file3.txt
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
   enew | only
 endfunc
 
@@ -1253,16 +1038,12 @@ endfunc
 " the current buffer has unsaved changes.
 " ==========================================================================
 func Test_44()
-  let test_name = 'test44'
   only
   set modified
   MRU file2.txt
-  if winnr('$') == 2 && winnr() == 1 &&
-        \ fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
   close
   set nomodified
 endfunc
@@ -1273,19 +1054,15 @@ endfunc
 " window if the current buffer has unsaved changes.
 " ==========================================================================
 func Test_45()
-  let test_name = 'test45'
   only
   set modified
   MRU
   call search('file3.txt')
   normal v
-  if winnr('$') == 2 && winnr() == 1
-        \ && fnamemodify(@%, ':p:t') ==# 'file3.txt'
-        \ && &readonly
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
+  call s:Assert_true(&readonly)
   close
   set nomodified
 endfunc
@@ -1295,51 +1072,38 @@ endfunc
 " Specify a count to the :MRU command to set the MRU window height/width
 " ==========================================================================
 func Test_46()
-  let test_name = 'test46'
   only
   " default height is 8
   MRU
-  if winnr() != 2 || winheight(0) != 8
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal(8, winheight(0))
   close
 
   " use a specific height value
   15MRU
-  if winnr() != 2 || winheight(0) != 15
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal(15, winheight(0))
   close
 
   if v:version >= 800
     " use a specific height value with a command modifier
     topleft 12MRU
-    if winnr() != 1 || winheight(0) != 12
-      call LogResult(test_name, 'FAIL (3)')
-      return
-    endif
+    call s:Assert_equal(1, winnr())
+    call s:Assert_equal(12, winheight(0))
     close
 
     " check for the width (leftmost window)
     vertical topleft 20MRU
-    if winnr() != 1 || winwidth(0) != 20
-      call LogResult(test_name, 'FAIL (4)')
-      return
-    endif
+    call s:Assert_equal(1, winnr())
+    call s:Assert_equal(20, winwidth(0))
     close
 
     " check for the width (rightmost window)
     vertical botright 25MRU
-    if winnr() != 2 || winwidth(0) != 25
-      call LogResult(test_name, 'FAIL (5)')
-      return
-    endif
+    call s:Assert_equal(2, winnr())
+    call s:Assert_equal(25, winwidth(0))
     close
   endif
-
-  call LogResult(test_name, 'pass')
 endfunc
 
 " ==========================================================================
@@ -1347,33 +1111,20 @@ endfunc
 " The height of the MRU window should be MRU_Window_Height
 " ==========================================================================
 func Test_47()
-  let test_name = 'test47'
   only
 
   " default height is 8
   MRU
-  if winheight(0) != 8
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_equal(8, winheight(0))
   close
-
   let g:MRU_Window_Height = 2
   MRU
-  if winheight(0) != 2
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
+  call s:Assert_equal(2, winheight(0))
   close
   let g:MRU_Window_Height = 12
   MRU
-  if winheight(0) != 12
-    call LogResult(test_name, 'FAIL (3)')
-    return
-  endif
+  call s:Assert_equal(12, winheight(0))
   close
-
-  call LogResult(test_name, 'pass')
   let g:MRU_Window_Height = 8
 endfunc
 
@@ -1386,26 +1137,17 @@ func Test_48()
     return
   endif
 
-  let test_name = 'test48'
   enew | only
-
   let g:MRU_FuzzyMatch = 1
   MRU F1
-  if fnamemodify(@%, ':p:t') ==# 'file1.txt' && winnr('$') == 1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL (1)')
-  endif
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
+  call s:Assert_equal(1, winnr('$'))
 
   let g:MRU_FuzzyMatch = 0
   redir => msg
   MRU F1
   redir END
-  if msg =~# "MRU file list doesn't contain files matching F1"
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL (2)')
-  endif
+  call s:Assert_match("MRU file list doesn't contain files matching F1", msg)
   let g:MRU_FuzzyMatch = 1
 endfunc
 
@@ -1414,16 +1156,11 @@ endfunc
 " Test for creating a new file by saving an unnamed buffer.
 " ==========================================================================
 func Test_49()
-  let test_name = 'test49'
   enew | only
   call setline(1, 'sample file')
   write sample.txt
   let l = readfile(g:MRU_File)
-  if match(l, 'sample.txt') != -1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL')
-  endif
+  call s:Assert_true(match(l, 'sample.txt') != -1)
   call delete('sample.txt')
   bwipe sample.txt
 endfunc
@@ -1433,20 +1170,11 @@ endfunc
 " Test for the MruGetFiles() function
 " ==========================================================================
 func Test_50()
-  let test_name = 'test50'
   enew | only
   let list1 = MruGetFiles()
   let list2 = readfile(g:MRU_File)
-  if list1 != list2[1:]
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
-
-  if MruGetFiles('x1y2z3') == []
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL (2)')
-  endif
+  call s:Assert_equal(list2[1:], list1)
+  call s:Assert_equal([], MruGetFiles('x1y2z3'))
 endfunc
 
 " ==========================================================================
@@ -1454,18 +1182,10 @@ endfunc
 " Test for the :MruRefresh command
 " ==========================================================================
 func Test_51()
-  let test_name = 'test51'
   enew | only
-  if match(MruGetFiles(), 'sample.txt') == -1
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_true(match(MruGetFiles(), 'sample.txt') != -1)
   MruRefresh
-  if match(MruGetFiles(), 'sample.txt') == -1
-    call LogResult(test_name, 'pass')
-  else
-    call LogResult(test_name, 'FAIL (2)')
-  endif
+  call s:Assert_equal(-1, match(MruGetFiles(), 'sample.txt'))
 endfunc
 
 " ==========================================================================
@@ -1473,7 +1193,6 @@ endfunc
 " Test for the re-opening a deleted buffer from the MRU list
 " ==========================================================================
 func Test_52()
-  let test_name = 'test52'
   edit file1.txt
   edit file2.txt
   bd
@@ -1481,21 +1200,16 @@ func Test_52()
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  if !&buflisted || fnamemodify(@%, ':p:t') !=# 'file2.txt'
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_true(&buflisted)
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
   " open the file directly using the command
   bw file1.txt file2.txt
   edit file2.txt
   edit file1.txt
   bd
   MRU file1.txt
-  if !&buflisted || fnamemodify(@%, ':p:t') !=# 'file1.txt'
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
-  call LogResult(test_name, 'pass')
+  call s:Assert_true(&buflisted)
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
 endfunc
 
 " ==========================================================================
@@ -1507,63 +1221,39 @@ func Test_53()
   if v:version < 800
     return
   endif
-  let test_name = 'test53'
   %bw!
   topleft MRU file2.txt
-  if winnr('$') == 2 && winnr() == 1 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    wincmd j
-    if winnr() != 2
-      call LogResult(test_name, 'FAIL (1)')
-      return
-    endif
-  else
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  wincmd j
+  call s:Assert_equal(2, winnr())
   %bw
   belowright MRU file2.txt
-  if winnr('$') == 2 && winnr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    wincmd k
-    if winnr() != 1
-      call LogResult(test_name, 'FAIL (3)')
-      return
-    endif
-  else
-    call LogResult(test_name, 'FAIL (4)')
-    return
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  wincmd k
+  call s:Assert_equal(1, winnr())
   %bw
   vertical topleft MRU file2.txt
-  if winnr('$') == 2 && winnr() == 1 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    wincmd l
-    if winnr() != 2
-      call LogResult(test_name, 'FAIL (5)')
-      return
-    endif
-  else
-    call LogResult(test_name, 'FAIL (6)')
-    return
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(1, winnr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  wincmd l
+  call s:Assert_equal(2, winnr())
   %bw
   vertical belowright MRU file2.txt
-  if winnr('$') == 2 && winnr() == 2 && fnamemodify(@%, ':p:t') ==# 'file2.txt'
-    wincmd h
-    if winnr() != 1
-      call LogResult(test_name, 'FAIL (7)')
-      return
-    endif
-  else
-    call LogResult(test_name, 'FAIL (8)')
-    return
-  endif
+  call s:Assert_equal(2, winnr('$'))
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  wincmd h
+  call s:Assert_equal(1, winnr())
   %bw
   tab MRU file2.txt
-  if tabpagenr() != 2 || fnamemodify(@%, ':p:t') !=# 'file2.txt'
-    call LogResult(test_name, 'FAIL (9)')
-    return
-  endif
+  call s:Assert_equal(2, tabpagenr())
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
   %bw
-  call LogResult(test_name, 'pass')
 endfunc
 
 " ==========================================================================
@@ -1571,29 +1261,21 @@ endfunc
 " Test for the :MRUToggle command.
 " ==========================================================================
 func Test_54()
-  let test_name = 'test54'
   only
   " open the MRU window
   MRUToggle
-  if bufwinnr(g:MRU_buffer_name) != 2 || winnr() != 2
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_equal(2, bufwinnr(g:MRU_buffer_name))
+  call s:Assert_equal(2, winnr())
   " close the MRU window
   MRUToggle
-  if bufwinnr(g:MRU_buffer_name) != -1 || winnr() != 1
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
+  call s:Assert_equal(-1, bufwinnr(g:MRU_buffer_name))
+  call s:Assert_equal(1, winnr())
   " close the MRU window from some other window
   MRUToggle
   wincmd k
   MRUToggle
-  if bufwinnr(g:MRU_buffer_name) != -1 || winnr() != 1
-    call LogResult(test_name, 'FAIL (3)')
-    return
-  endif
-  call LogResult(test_name, 'pass')
+  call s:Assert_equal(-1, bufwinnr(g:MRU_buffer_name))
+  call s:Assert_equal(1, winnr())
 endfunc
 
 " ==========================================================================
@@ -1602,7 +1284,6 @@ endfunc
 " be the alternate file.
 " ==========================================================================
 func Test_55()
-  let test_name = 'test55'
   silent! bw file1.txt file2.txt file3.txt
   new
   edit file1.txt
@@ -1610,12 +1291,8 @@ func Test_55()
   MRU
   call search('file3.txt')
   exe "normal \<Enter>"
-  if fnamemodify(@%, ':p:t') !=# 'file3.txt'
-        \ || fnamemodify(@#, ':p:t') !=# 'file2.txt'
-    call LogResult(test_name, 'FAIL')
-    return
-  endif
-  call LogResult(test_name, 'pass')
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
+  call s:Assert_equal('file2.txt', expand('#:p:t'))
 endfunc
 
 " ==========================================================================
@@ -1624,7 +1301,6 @@ endfunc
 " should not change the alternate file.
 " ==========================================================================
 func Test_56()
-  let test_name = 'test56'
   let g:MRU_Use_Current_Window = 1
   bw file1.txt file2.txt file3.txt
   new
@@ -1634,35 +1310,25 @@ func Test_56()
   MRU
   call search('file3.txt')
   exe "normal \<Enter>"
-  if fnamemodify(@%, ':p:t') !=# 'file3.txt'
-        \ || fnamemodify(@#, ':p:t') !=# 'file2.txt'
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_equal('file3.txt', expand('%:p:t'))
+  call s:Assert_equal('file2.txt', expand('#:p:t'))
   " try viewing a file
   MRU
   call search('file1.txt')
   normal v
-  if fnamemodify(@%, ':p:t') !=# 'file1.txt'
-        \ || fnamemodify(@#, ':p:t') !=# 'file3.txt'
-        \ || !&readonly
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
+  call s:Assert_equal('file1.txt', expand('%:p:t'))
+  call s:Assert_equal('file3.txt', expand('#:p:t'))
+  call s:Assert_true(&readonly)
   " try opening a wiped out buffer
   bw file2.txt
   MRU
   call search('file2.txt')
   exe "normal \<Enter>"
-  if fnamemodify(@%, ':p:t') !=# 'file2.txt'
-        \ || fnamemodify(@#, ':p:t') !=# 'file1.txt'
-        \ || &readonly
-    call LogResult(test_name, 'FAIL (3)')
-    return
-  endif
+  call s:Assert_equal('file2.txt', expand('%:p:t'))
+  call s:Assert_equal('file1.txt', expand('#:p:t'))
+  call s:Assert_true(!&readonly)
   let g:MRU_Use_Current_Window = 0
   bw!
-  call LogResult(test_name, 'pass')
 endfunc
 
 " ==========================================================================
@@ -1671,27 +1337,20 @@ endfunc
 " If 'MRU_Use_Current_Window' is set, then the MRU buffer should be wiped out.
 " ==========================================================================
 func Test_57()
-  let test_name = 'test57'
   MRU
   let mrubnum = bufnr('')
   close
-  if bufloaded(mrubnum)
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_true(!bufloaded(mrubnum))
   let g:MRU_Use_Current_Window = 1
   new
   edit Xfile
   MRU
   let mrubnum = bufnr('')
   edit #
-  if bufexists(mrubnum) || @% != 'Xfile'
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
+  call s:Assert_true(!bufexists(mrubnum))
+  call s:Assert_equal('Xfile', @%)
   let g:MRU_Use_Current_Window = 0
   bw!
-  call LogResult(test_name, 'pass')
 endfunc
 
 " ==========================================================================
@@ -1700,23 +1359,17 @@ endfunc
 " previous buffer should be loaded.
 " ==========================================================================
 func Test_58()
-  let test_name = 'test58'
   let g:MRU_Use_Current_Window = 1
   new
   edit Xfile
   MRUToggle
-  if @% != g:MRU_buffer_name || winnr('$') != 2
-    call LogResult(test_name, 'FAIL (1)')
-    return
-  endif
+  call s:Assert_equal(g:MRU_buffer_name, @%)
+  call s:Assert_equal(2, winnr('$'))
   MRUToggle
-  if @% != 'Xfile' || winnr('$') != 2
-    call LogResult(test_name, 'FAIL (2)')
-    return
-  endif
+  call s:Assert_equal('Xfile', @%)
+  call s:Assert_equal(2, winnr('$'))
   let g:MRU_Use_Current_Window = 0
   bw!
-  call LogResult(test_name, 'pass')
 endfunc
 
 " ==========================================================================
@@ -1728,26 +1381,19 @@ func Test_59()
   if v:version < 802
     return
   endif
-  let test_name = 'test59'
   call writefile([], 'Xfirstfile')
   edit Xfirstfile
   call writefile([
         \ "let MRU_File='vim_mru_file'",
-        \ "let MRU_Set_Alternate_File=1",
-        \ "source ../plugin/mru.vim",
+        \ 'let MRU_Set_Alternate_File=1',
+        \ 'source ../plugin/mru.vim',
         \ "call writefile([@#], 'Xoutput')"
         \ ], 'Xscript')
   silent! !vim -u NONE --noplugin -i NONE -N -S Xscript -c "qa"
-  if !filereadable('Xoutput')
-    call LogResult(test_name, 'FAIL (1)')
-  else
-    let lines = readfile('Xoutput')
-    if len(lines) == 1 && lines[0] =~ 'Xfirstfile$'
-      call LogResult(test_name, 'pass')
-    else
-      call LogResult(test_name, 'FAIL (2)')
-    endif
-  endif
+  call s:Assert_true(filereadable('Xoutput'))
+  let lines = readfile('Xoutput')
+  call s:Assert_true(1, len(lines))
+  call s:Assert_match('Xfirstfile$', lines[0])
   call delete('Xscript')
   call delete('Xoutput')
   call delete('Xfirstfile')
@@ -1759,7 +1405,6 @@ endfunc
 " current window, even when the file is already open in another window
 " ==========================================================================
 func Test_60()
-  let test_name = 'test60'
   let g:MRU_Use_Current_Window = 1
 
   edit file1.txt
@@ -1771,11 +1416,10 @@ func Test_60()
   call search('file1.txt')
   exe "normal \<Enter>"
 
-  if winnr() == 2 && winbufnr(1) == bnum && winbufnr(2) == bnum
-    call LogResult(test_name, "pass")
-  else
-    call LogResult(test_name, "FAIL")
-  endif
+  call s:Assert_equal(2, winnr())
+  call s:Assert_equal(bnum, winbufnr(1))
+  call s:Assert_equal(bnum, winbufnr(2))
+
   let g:MRU_Use_Current_Window = 0
 endfunc
 
@@ -1788,7 +1432,6 @@ func Test_61()
   if !has('unix')
     return
   endif
-  let test_name = 'test61'
 
   let l = readfile(g:MRU_File)
   call remove(l, 1, -1)
@@ -1809,14 +1452,9 @@ func Test_61()
     for p in ['my12', 'mY1298', 'MY1298', 'My1298File']
       exe 'MRU ' . p
       let lines = getline(1, '$')
-      if lines !=# expected
-        call LogResult(test_name, 'FAIL (' . p . ')')
-        return
-      endif
+      call s:Assert_equal(expected, lines, p)
       close
     endfor
-
-    call LogResult(test_name, 'pass')
   finally
     let g:MRU_FuzzyMatch = 1
   endtry
@@ -1848,7 +1486,22 @@ set nomore
 set debug=beep
 for one_test in sort(s:tests)
   echo 'Executing ' . one_test
+  if s:builtin_assert
+    let v:errors = []
+  else
+    let s:errors = []
+  endif
   exe 'call ' . one_test
+  if s:builtin_assert
+    let errs = v:errors
+  else
+    let errs = s:errors
+  endif
+  if empty(errs)
+    call LogResult(one_test, 'pass')
+  else
+    call LogResult(one_test, 'FAIL ' . string(errs))
+  endif
 endfor
 set more
 
