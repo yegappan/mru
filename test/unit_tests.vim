@@ -36,11 +36,7 @@ endfunc
 
 let s:errors = []
 
-func! MRU_assert_compare(match, expected, actual, ...)
-  let msg = ''
-  if a:0 == 1
-    let msg = a:1
-  endif
+func! MRU_assert_compare(match, expected, actual, msg)
   if a:match
     let passed = a:actual =~# a:expected
   else
@@ -60,6 +56,22 @@ func! MRU_assert_compare(match, expected, actual, ...)
     endif
     call add(s:errors, t)
   endif
+endfunc
+
+func! MRU_assert_equal(expected, actual, ...)
+  let msg = ''
+  if a:0 == 1
+    let msg = a:1
+  endif
+  call MRU_assert_compare(0, a:expected, a:actual, msg)
+endfunc
+
+func! MRU_assert_match(expected, actual, ...)
+  let msg = ''
+  if a:0 == 1
+    let msg = a:1
+  endif
+  call MRU_assert_compare(1, a:expected, a:actual, msg)
 endfunc
 
 func! MRU_assert_true(result, ...)
@@ -84,8 +96,8 @@ if s:builtin_assert
   let s:Assert_true = function('assert_true')
 else
   " Vim doesn't have support for the assert_xxx() functions
-  let s:Assert_equal = function('MRU_assert_compare', [0])
-  let s:Assert_match = function('MRU_assert_compare', [1])
+  let s:Assert_equal = function('MRU_assert_equal')
+  let s:Assert_match = function('MRU_assert_match')
   let s:Assert_true = function('MRU_assert_true')
 endif
 
