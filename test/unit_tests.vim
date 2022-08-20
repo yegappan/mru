@@ -1420,7 +1420,7 @@ func Test_60()
   let g:MRU_Use_Current_Window = 1
 
   edit file1.txt
-  let bnum = bufnr()
+  let bnum = bufnr('')
   only
   below split file2.txt
 
@@ -1500,15 +1500,16 @@ for one_test in sort(s:tests)
   echo 'Executing ' . one_test
   if s:builtin_assert
     let v:errors = []
-  else
-    let s:errors = []
-  endif
-  exe 'call ' . one_test
-  if s:builtin_assert
     let errs = v:errors
   else
+    let s:errors = []
     let errs = s:errors
   endif
+  try
+    exe 'call ' . one_test
+  catch
+    call add(errs, "Error: Test " . one_test . " failed with exception " . v:exception . " at " . v:throwpoint)
+  endtry
   if empty(errs)
     call LogResult(one_test, 'pass')
   else
