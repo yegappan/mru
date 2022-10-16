@@ -756,7 +756,7 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
     " Display only the entries matching the specified pattern. First try
     " fuzzy matching or as a literal pattern.
     if g:MRU_FuzzyMatch
-      let m = filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:pat)->empty()')
+      let m = filter(copy(s:MRU_files), '!empty(matchfuzzy([v:val], a:pat))')
     else
       " do case insensitive file name comparison
       let spat = tolower(a:pat)
@@ -800,7 +800,7 @@ func! s:MRU_Complete(ArgLead, CmdLine, CursorPos) abort
   else
     if g:MRU_FuzzyMatch
       " Return only the files fuzzy matching the specified pattern
-      return filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:ArgLead)->empty()')
+      return filter(copy(s:MRU_files), '!empty(matchfuzzy([v:val], a:ArgLead))')
     else
       " Return only the files matching the specified pattern
       return filter(copy(s:MRU_files), 'v:val =~? a:ArgLead')
@@ -833,7 +833,7 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
   " filename is found, then edit it (unless the user wants to open the MRU
   " window always)
   if g:MRU_FuzzyMatch
-    let m = filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:pat)->empty()')
+    let m = filter(copy(s:MRU_files), '!empty(matchfuzzy([v:val], a:pat))')
   else
     " do case insensitive file name comparison
     let spat = tolower(a:pat)
@@ -1032,7 +1032,7 @@ func MruGetFiles(...)
   if a:0 == 1
     if g:MRU_FuzzyMatch
       " Return only the files fuzzy matching the specified pattern
-      return filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:1)->empty()')
+      return filter(copy(s:MRU_files), '!empty(matchfuzzy([v:val], a:1))')
     endif
     " Return only the files matching the specified pattern
     return filter(copy(s:MRU_files), 'v:val =~? a:1')
