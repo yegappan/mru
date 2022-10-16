@@ -31,13 +31,13 @@ For Vim 7.4 and before, you can use the following steps (on Unix/Linux/MacOS sys
 You can also install this plugin directly from github using the following steps (for Vim 8.0 and above):
 
     $ mkdir -p $HOME/.vim/pack/downloads/start/mru
-    $ cd $HOME/.vim/pack/downloads/start/mru
+    $ cd $HOME/.vim/pack/downloads/start
     $ git clone https://github.com/yegappan/mru
 
 For NeoVim:
 
     $ mkdir -p $HOME/.config/nvim/pack/downloads/start/mru
-    $ cd $HOME/.config/nvim/pack/downloads/start/mru
+    $ cd $HOME/.config/nvim/pack/downloads/start
     $ git clone https://github.com/yegappan/mru
 
 or you can use any one of the Vim plugin managers ([vim-plug](https://github.com/junegunn/vim-plug), [dein.vim](https://github.com/Shougo/dein.vim), [pathogen](https://github.com/tpope/vim-pathogen), [minpac](https://github.com/k-takata/minpac), [vam](https://github.com/MarcWeber/vim-addon-manager), [volt](https://github.com/vim-volt/volt), [Vundle](https://github.com/VundleVim/Vundle.vim), etc.) to install and manage this plugin.

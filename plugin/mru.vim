@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.11
-" Last Modified: August 20, 2022
+" Last Modified: October 16, 2022
 " Copyright: Copyright (C) 2003-2022 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -18,6 +18,7 @@ endif
 let loaded_mru=1
 
 if v:version < 700
+  " Needs Vim version 7.0 and above
   finish
 endif
 
@@ -26,7 +27,7 @@ let s:cpo_save = &cpoptions
 set cpoptions&vim
 
 " MRU configuration variables {{{1
-" Maximum number of entries allowed in the MRU list
+" Maximum number of file names stored in the MRU list
 if !exists('MRU_Max_Entries')
   let MRU_Max_Entries = 100
 endif
@@ -755,7 +756,7 @@ func! s:MRU_Open_Window(pat, splitdir, winsz) abort
     " Display only the entries matching the specified pattern. First try
     " fuzzy matching or as a literal pattern.
     if g:MRU_FuzzyMatch
-      let m = matchfuzzy(s:MRU_files, a:pat)
+      let m = filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:pat)->empty()')
     else
       " do case insensitive file name comparison
       let spat = tolower(a:pat)
@@ -790,13 +791,16 @@ endfunc
 " MRU_Complete                          {{{1
 " Command-line completion function used by :MRU command
 func! s:MRU_Complete(ArgLead, CmdLine, CursorPos) abort
+  " Load the latest MRU file
+  call s:MRU_LoadList()
+
   if empty(a:ArgLead)
     " Return the complete list of MRU files
     return s:MRU_files
   else
     if g:MRU_FuzzyMatch
       " Return only the files fuzzy matching the specified pattern
-      return matchfuzzy(s:MRU_files, a:ArgLead)
+      return filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:ArgLead)->empty()')
     else
       " Return only the files matching the specified pattern
       return filter(copy(s:MRU_files), 'v:val =~? a:ArgLead')
@@ -829,7 +833,7 @@ func! s:MRU_Cmd(pat, splitdir, winsz) abort
   " filename is found, then edit it (unless the user wants to open the MRU
   " window always)
   if g:MRU_FuzzyMatch
-    let m = matchfuzzy(s:MRU_files, a:pat)
+    let m = filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:pat)->empty()')
   else
     " do case insensitive file name comparison
     let spat = tolower(a:pat)
@@ -1028,7 +1032,7 @@ func MruGetFiles(...)
   if a:0 == 1
     if g:MRU_FuzzyMatch
       " Return only the files fuzzy matching the specified pattern
-      return matchfuzzy(s:MRU_files, a:1)
+      return filter(copy(s:MRU_files), '!matchfuzzy([v:val], a:1)->empty()')
     endif
     " Return only the files matching the specified pattern
     return filter(copy(s:MRU_files), 'v:val =~? a:1')

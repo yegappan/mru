@@ -1473,6 +1473,40 @@ func Test_61()
 endfunc
 
 " ==========================================================================
+" Test62
+" When using fuzzy match, the order of the file names in the MRU list should
+" be maintained in the returned list.
+" Works only in Unix-like systems.
+" ==========================================================================
+func Test_62()
+  if !has('unix') || !exists('*matchfuzzy')
+    return
+  endif
+
+  let l = readfile(g:MRU_File)
+  call remove(l, 1, -1)
+  call writefile(l, g:MRU_File)
+  call s:MRU_Test_Add_Files(['a111b222c', 'a11b22c', 'abc123', 'a1b2c'])
+
+  " Test for command-line expansion
+  exe 'normal! :MRU abc' . "\<C-A>\<Home>let m='\<End>'\<CR>"
+  call s:Assert_equal('MRU a111b222c a11b22c abc123 a1b2c', m)
+
+  " Test for MruGetFiles()
+  let l = MruGetFiles('abc')
+  call s:Assert_equal(['a111b222c', 'a11b22c', 'abc123', 'a1b2c'], l)
+
+  " Test for MRU window
+  MRU abc
+  let l = getline(1, '$')
+  call s:Assert_match('a111b222c', l[0])
+  call s:Assert_match('a11b22c', l[1])
+  call s:Assert_match('abc123', l[2])
+  call s:Assert_match('a1b2c', l[3])
+  close
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')

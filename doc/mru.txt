@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: August 19, 2022
+Last change: October 16, 2022
 
 ==============================================================================
 						*mru-license*
@@ -86,13 +86,13 @@ You can also install the latest version of the plugin directly from github
 using the following steps (in Vim 8.0 and above): >
 
     $ mkdir -p $HOME/.vim/pack/downloads/start/mru
-    $ cd $HOME/.vim/pack/downloads/start/mru
+    $ cd $HOME/.vim/pack/downloads/start
     $ git clone https://github.com/yegappan/mru.git
 <
 For Neovim: >
 
     $ mkdir -p $HOME/.config/nvim/pack/downloads/start/mru
-    $ cd $HOME/.config/nvim/pack/downloads/start/mru
+    $ cd $HOME/.config/nvim/pack/downloads/start
     $ git clone https://github.com/yegappan/mru.git
 <
 ==============================================================================
