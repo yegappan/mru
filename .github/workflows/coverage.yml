@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run Tests
         run: |
           uname -a
@@ -16,7 +16,7 @@ jobs:
           cd ./test
           ./run_mru_tests.sh
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.7.14
       - name: Install covimerage
@@ -33,7 +33,7 @@ jobs:
           coverage report
           coverage xml
       - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./test/coverage.xml
