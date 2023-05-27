@@ -1507,6 +1507,23 @@ func Test_62()
 endfunc
 
 " ==========================================================================
+" Test63
+" With MRU_Open_File_Relative set to 1, MRU opens a selected file relative to
+" the current working directory (or home directory, but that's hard to test)
+" ==========================================================================
+func Test_63()
+  let g:MRU_Open_File_Relative = 1
+  edit file1.txt
+  edit file2.txt
+  bwipe file1.txt
+  MRU
+  call search('file1.txt')
+  exe "normal \<Enter>"
+  call s:Assert_equal('file1.txt', expand('%'))
+  let g:MRU_Open_File_Relative = 0
+endfunc
+
+" ==========================================================================
 
 " Create the files used by the tests
 call writefile(['MRU test file1'], 'file1.txt')
