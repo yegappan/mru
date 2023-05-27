@@ -269,6 +269,7 @@ file. A summary of these variables is below:
   |MRU_Use_Current_Window|	use current window to display MRU list
   |MRU_Auto_Close|		close the MRU window when a file is selected
   |MRU_Window_Open_Always|	open the MRU window even for a single file
+  |MRU_Open_File_Relative|	open files using relative paths
   |MRU_Open_File_Use_Tabs|	open files in separate tab pages
   |MRU_FuzzyMatch|		use fuzzy match for filtering file names
   |MRU_Add_Menu|		add MRU files to the "Recent Files" menu
@@ -358,6 +359,14 @@ directly opened. To force open the MRU window always, you can set the
 MRU_Window_Open_Always variable to 1. By default this variable is set to 0.
 >
 	let MRU_Window_Open_Always = 1
+<
+						*MRU_Open_File_Relative*
+When opening a file from the MRU list, the file is normally opened using the
+path shown in the list, which defaults to the full path. To always try and
+open files relative to the home directory or current directory, you can set
+the MRU_Open_File_Relative variable to 1. By default this is set to 0.
+>
+	let MRU_Open_File_Relative = 1
 <
 						*MRU_Open_File_Use_Tabs*
 When opening a file from the MRU list, the file is opened in the current
