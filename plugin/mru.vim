@@ -56,6 +56,10 @@ if !exists('MRU_Auto_Close')
   let MRU_Auto_Close = 1
 endif
 
+if !exists("MRU_Open_File_Relative ")
+  let MRU_Open_File_Relative = 0
+endif
+
 if !exists('g:MRU_File')
   if has('unix') || has('macunix')
     let s:MRU_File = $HOME . '/.vim_mru_files'
@@ -555,6 +559,11 @@ func! s:MRU_Select_File_Cmd(opt) range abort
 
     " The text in the MRU window contains the filename in parenthesis
     let file = matchstr(f, g:MRU_Filename_Format.parser)
+
+    if g:MRU_Open_File_Relative  == 1
+      " Open relative to home directory or current directory if possible
+      let file = fnamemodify(file, ":~:.")
+    endif
 
     call s:MRU_Window_Edit_File(file, multi, edit_type, open_type)
 
