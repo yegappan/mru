@@ -1,7 +1,7 @@
 " File: mru.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 3.11
-" Last Modified: October 16, 2022
+" Last Modified: June 06, 2024
 " Copyright: Copyright (C) 2003-2022 Yegappan Lakshmanan
 " License:   Permission is hereby granted to use and distribute this code,
 "            with or without modifications, provided that this copyright
@@ -120,6 +120,10 @@ if !exists('MRU_FuzzyMatch')
   else
     let MRU_FuzzyMatch = 0
   endif
+endif
+
+if !exists('MRU_FZF_Preview')
+  let MRU_FZF_Preview = 0
 endif
 
 " Controls whether the alternate file (:help alternate-file) is set when the
@@ -1104,7 +1108,7 @@ func s:MRU_FZF_EditFile(fname) abort
   call s:MRU_Window_Edit_File(a:fname, 0, 'edit', 'useopen')
 endfunc
 
-func s:MRU_FZF_Run() abort
+func s:MRU_FZF_Run(bang) abort
   if !exists('*fzf#run')
     call s:MRU_Warn_Msg('FZF plugin is not present')
     return
@@ -1113,11 +1117,16 @@ func s:MRU_FZF_Run() abort
   " Load the latest MRU list
   call s:MRU_LoadList()
 
-  call fzf#run(fzf#wrap({'source' : s:MRU_files,
-    \ 'options' : '--no-sort',
-    \ 'sink' : function('s:MRU_FZF_EditFile')}, 0))
+  let dict = {'source' : s:MRU_files,
+            \ 'options' : '--no-sort --prompt="MRU> " ' .. $FZF_DEFAULT_OPTS,
+            \ 'sink' : function('s:MRU_FZF_EditFile')}
+   if g:MRU_FZF_Preview && exists('*fzf#complete') " fzf.vim plugin present
+      call fzf#vim#files('', fzf#vim#with_preview(dict), a:bang)
+   else
+      call fzf#run(fzf#wrap(dict, a:bang))
+   endif
 endfunc
-command! -nargs=0 FZFMru call s:MRU_FZF_Run()
+command! -bang -nargs=0 FZFMru call s:MRU_FZF_Run(<bang>0)
 
 " }}}
 

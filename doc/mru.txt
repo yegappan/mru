@@ -454,7 +454,12 @@ To select a file from the MRU file list using FZF, run the following command:
 >
 	:FZFMru
 <
-This will invoke FZF to select a file from the MRU list.
+This will invoke FZF to select a file from the MRU list. With a bang :FZFMru!
+the FZF menu will open fullscreen. With
+
+      	let MRU_FZF_Preview = 1
+
+a preview window is shown if the fzf.vim plug-in is installed.
 
 ==============================================================================
 
