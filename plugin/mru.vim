@@ -1104,9 +1104,6 @@ endif
 command! -nargs=0 MruRefresh call s:MRU_Refresh()
 
 " FZF (fuzzy finder) integration    {{{1
-func s:MRU_FZF_EditFile(fname) abort
-  call s:MRU_Window_Edit_File(a:fname, 0, 'edit', 'useopen')
-endfunc
 
 func s:MRU_FZF_Run(bang) abort
   if !exists('*fzf#run')
@@ -1118,8 +1115,7 @@ func s:MRU_FZF_Run(bang) abort
   call s:MRU_LoadList()
 
   let dict = {'source' : s:MRU_files,
-            \ 'options' : '--no-sort --prompt="MRU> " ' .. $FZF_DEFAULT_OPTS,
-            \ 'sink' : function('s:MRU_FZF_EditFile')}
+            \ 'options' : '--no-sort --prompt="MRU> " ' .. $FZF_DEFAULT_OPTS}
    if g:MRU_FZF_Preview && exists('*fzf#complete') " fzf.vim plugin present
       call fzf#vim#files('', fzf#vim#with_preview(dict), a:bang)
    else
